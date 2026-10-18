@@ -1,0 +1,1226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f6f3ec"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-180.png"><link rel="icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Low-Energy Meal Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--acc:var(--a);--acc2:var(--a2);--hl:var(--a);--ink2:var(--mute);--ink3:var(--mute);--bg2:var(--bg);--line2:var(--line);--ok:var(--a);--okbg:var(--a2);--bad:var(--warn);--serif:'Bricolage Grotesque',sans-serif;--sans:Figtree,sans-serif;--bg:#f6f3ec;--card:#fffdf8;--ink:#17150f;--mute:#6b675c;--line:#e7e1d3;--a:#3f7d5c;--a2:#e3efe6;--a3:#cfe3d5;--warn:#c8553d;--warn2:#f8e3dc;--sun:#f2c14e;--sun2:#fbefcc;--r:18px}
+[data-t=blush]{--a:#c0557a;--a2:#f8e6ec;--a3:#f0cfdb}
+[data-t=lavender]{--a:#6f5bb5;--a2:#ece8f8;--a3:#d9d1f1}
+[data-t=ocean]{--a:#2f6f8f;--a2:#e2eef4;--a3:#c8dfea}
+[data-t=terracotta]{--a:#b4573a;--a2:#f6e6df;--a3:#ecccbf}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 Figtree,system-ui,sans-serif}
+h1,h2,h3{font-family:'Bricolage Grotesque',Figtree,sans-serif;margin:0;letter-spacing:-.01em}
+h1{font-size:30px;font-weight:800}h2{font-size:20px;font-weight:800}h3{font-size:16px;font-weight:600}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:11px 13px;width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--a)}
+.app{display:flex;min-height:100vh}
+nav.side{display:none}
+main{flex:1;max-width:760px;margin:0 auto;padding:22px 16px 110px;width:100%}
+.top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px}
+.kick{font-size:13px;color:var(--mute);font-weight:600}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;margin-bottom:14px}
+.row{display:flex;align-items:center;gap:10px}
+.between{justify-content:space-between}
+.mute{color:var(--mute)}.sm{font-size:13px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 18px;border-radius:999px;font-weight:700;background:var(--a2);white-space:nowrap}
+.btn.pri{background:var(--a);color:#fff}
+.btn.big{padding:16px 22px;font-size:17px;width:100%}
+.btn.ghost{background:transparent;border:1.5px solid var(--line)}
+.btn.s{padding:8px 13px;font-size:14px}
+.ico{width:20px;height:20px;flex:none}
+.iconbtn{width:42px;height:42px;border-radius:50%;background:var(--a2);display:grid;place-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;background:var(--a2);font-size:13px;font-weight:600}
+.chip.warn{background:var(--warn2);color:#7a2c1c}.chip.sun{background:var(--sun2);color:#6b4b00}
+.tile{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;flex:none;background:var(--a2);color:var(--a)}
+.tile svg{width:24px;height:24px}
+/* energy */
+.energy{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.en{border:2px solid var(--line);border-radius:16px;padding:14px 8px;text-align:center;background:var(--card);font-weight:700}
+.en .bat{display:block;margin:0 auto 6px;width:40px;height:20px}
+.en.on{border-color:var(--a);background:var(--a2)}
+.en small{display:block;font-weight:500;color:var(--mute);font-size:12px}
+.hero{background:var(--a);color:#fff;border:0}
+.hero .mute{color:#ffffffcc}
+.hero .btn{background:#fff;color:var(--ink)}
+.hero .btn.ghost{background:transparent;border-color:#ffffff66;color:#fff}
+.startby{display:flex;gap:14px;align-items:center;background:#ffffff1f;border-radius:14px;padding:12px 14px;margin:14px 0}
+.startby b{font-size:24px;font-family:'Bricolage Grotesque'}
+.opt{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line);width:100%;text-align:left}
+.opt:first-child{border-top:0}
+.opt .grow{flex:1;min-width:0}
+.opt b{display:block}
+/* week */
+.day{display:flex;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+.day:first-of-type{border-top:0}
+.dl{width:52px;flex:none}
+.dl b{display:block;font-size:15px}.dl span{font-size:12px;color:var(--mute)}
+.day.today .dl b{color:var(--a)}
+.slot{flex:1;min-width:0;display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:14px;padding:9px 11px;text-align:left}
+.slot.empty{border:1.5px dashed var(--line);background:transparent;color:var(--mute);justify-content:center}
+.slot .tile{width:36px;height:36px;border-radius:11px}.slot .tile svg{width:19px;height:19px}
+.lowtag{font-size:11px;font-weight:700;color:#6b4b00;background:var(--sun2);border-radius:6px;padding:1px 6px;margin-left:6px}
+.why{font-size:12px;color:var(--a);font-weight:600}
+/* list */
+.aisle{margin-top:6px}
+.it{display:flex;align-items:center;gap:13px;padding:11px 0;border-top:1px solid var(--line)}
+.ck{width:30px;height:30px;border-radius:50%;border:2px solid var(--a3);flex:none;display:grid;place-items:center}
+.it.done .ck{background:var(--a);border-color:var(--a);color:#fff}
+.it.done .nm{text-decoration:line-through;color:var(--mute)}
+.nm{flex:1;min-width:0}.nm small{display:block;color:var(--mute);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fr{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:14px;background:var(--bg);margin-top:8px}
+.fr.hot{background:var(--warn2)}
+/* recipes */
+.grid{display:grid;grid-template-columns:1fr;gap:10px}
+.rc{display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;text-align:left;width:100%}
+.filters{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin:12px 0}
+.filters .chip{background:var(--card);border:1.5px solid var(--line);padding:7px 13px;white-space:nowrap}
+.filters .chip.on{background:var(--a);border-color:var(--a);color:#fff}
+/* wins */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}
+.stat b{display:block;font:800 26px 'Bricolage Grotesque'}
+.stat span{font-size:12px;color:var(--mute);font-weight:600}
+.legend{display:flex;gap:14px;font-size:13px;color:var(--mute);margin-top:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px}
+/* nav */
+nav.bot{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:8px 6px calc(8px + env(safe-area-inset-bottom));z-index:20}
+nav.bot button{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11.5px;font-weight:600;color:var(--mute);padding:4px 8px;border-radius:12px;min-width:58px}
+nav.bot button.on{color:var(--a)}
+nav.bot button.on .ico{background:var(--a2);border-radius:10px;box-sizing:content-box;padding:3px 12px}
+/* sheet */
+.ov{position:fixed;inset:0;background:#17150f55;z-index:40;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--card);width:100%;max-width:560px;border-radius:24px 24px 0 0;padding:22px 18px calc(22px + env(safe-area-inset-bottom));max-height:92vh;overflow:auto}
+.sheet .x{float:right}
+label.f{display:block;font-weight:600;font-size:14px;margin:14px 0 6px}
+.pick{display:flex;flex-wrap:wrap;gap:8px}
+.pick button{padding:10px 15px;border-radius:12px;border:1.5px solid var(--line);font-weight:600;background:var(--card)}
+.pick button.on{border-color:var(--a);background:var(--a2)}
+.sw{width:38px;height:38px;border-radius:50%;border:3px solid transparent}
+.sw.on{border-color:var(--ink)}
+/* cook */
+.cook{position:fixed;inset:0;background:var(--bg);z-index:50;display:flex;flex-direction:column;padding:20px 18px calc(20px + env(safe-area-inset-bottom))}
+.cook .stepx{flex:1;display:flex;flex-direction:column;justify-content:center;max-width:620px;margin:0 auto;width:100%}
+.cook .stepx p{font:600 26px/1.3 'Bricolage Grotesque';margin:0 0 22px}
+.prog{display:flex;gap:5px;margin-top:10px}.prog i{flex:1;height:5px;border-radius:3px;background:var(--line)}.prog i.on{background:var(--a)}
+.timer{background:var(--sun2);border-radius:14px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;font-weight:700}
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 18px;border-radius:999px;font-weight:600;z-index:60;font-size:14px}
+.onb{max-width:520px;margin:0 auto;padding:40px 18px}
+.empty-note{text-align:center;padding:26px 10px;color:var(--mute)}
+@media(min-width:900px){
+ nav.bot{display:none}
+ nav.side{display:flex;flex-direction:column;gap:4px;width:230px;padding:26px 14px;border-right:1px solid var(--line);position:sticky;top:0;height:100vh;background:var(--card)}
+ nav.side .brand{font:800 18px 'Bricolage Grotesque';display:flex;gap:9px;align-items:center;padding:0 10px 18px}
+ nav.side button{display:flex;gap:11px;align-items:center;padding:11px 12px;border-radius:12px;font-weight:600;color:var(--mute);text-align:left}
+ nav.side button.on{background:var(--a2);color:var(--ink)}
+ main{padding:34px 34px 60px;max-width:880px}
+ .grid{grid-template-columns:1fr 1fr}
+ .two{display:grid;grid-template-columns:1.25fr 1fr;gap:14px;align-items:start}
+ .toast{bottom:30px}
+ .ov{align-items:center}.sheet{border-radius:24px}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>window.BP_DEMO=false;window.BP_SYNC_URL="https://truehaven-sync.fishing-switzerland.workers.dev";</script>
+<script>/* TrueHaven Sync – end-to-end-encrypted device sync for the offline apps (client module).
+   One file, no libraries, WebCrypto only. Works in browsers and in Node 20+ (for tests).
+
+   Usage in an app (see README.md):
+     const SYNC = THSync.create({
+       appId: "bills", appName: "Bill Smoother", storageKey: "thbills.v1", url: window.BP_SYNC_URL, demo: DEMO,
+       getState: () => JSON string of the whole state (as it is saved),
+       applyState: json => replace the whole state through the app's normal load/migrate path, save it, re-render,
+       onChange: notify => { remember notify; call it after every local save },
+       describe: json => "12 bills · 3 jars"      (optional, shown in the conflict dialog),
+       hasData: () => true if this device holds data worth protecting  (optional),
+       validate: json => throws if json isn't this app's data       (optional),
+       rerender: () => app re-render                                   (optional)
+     });
+     SYNC.start();                     // after the app's first render
+     SYNC.pillHTML()                   // status pill, put it anywhere (updates itself)
+     SYNC.sectionHTML()                // the "Your devices" settings block (updates itself)
+     SYNC.openJoin()                   // "I already use it on another device"
+
+   Security model, briefly:
+   - Device A makes a random spaceId (128 bit), dataKey (AES-GCM 256) and writeToken (256 bit).
+   - Every save is encrypted on the device: AES-GCM, fresh 96-bit IV, additional data = app id + spaceId + version,
+     so the server can't swap copies between apps/spaces or pass an old copy off as a newer one.
+   - The server stores ciphertext + sha256(writeToken) only. Anyone without the dataKey sees random bytes.
+   - Linking: either a 6-digit code (online, server-mediated, see the honest note at pairSeal) or a QR/link whose
+     #fragment carries the secrets directly – fragments are never sent to any server.
+   - Secrets live in localStorage next to the app's own data (which is plain text there anyway). */
+(function (root) {
+  "use strict";
+  const VERSION = 1;
+  const PBKDF2_ITER = 600000;          // OWASP 2023 recommendation for PBKDF2-HMAC-SHA256
+  const DEBOUNCE = 3000, POLL = 60000, BACKOFF = [2000, 4000, 8000, 16000, 32000, 60000];
+  const MAX_CT = 1800000;              // keep in step with worker.js
+  const te = new TextEncoder(), td = new TextDecoder();
+  const subtle = () => (root.crypto || globalThis.crypto).subtle;
+  const rand = n => { const a = new Uint8Array(n); (root.crypto || globalThis.crypto).getRandomValues(a); return a; };
+
+  // ------------------------------------------------------------------ bytes
+  function b64(bytes) { let s = ""; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(s); }
+  function unb64(s) { const t = atob(s), a = new Uint8Array(t.length); for (let i = 0; i < t.length; i++) a[i] = t.charCodeAt(i); return a; }
+  const b64url = bytes => b64(bytes).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  const unb64url = s => unb64(s.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((s.length + 3) % 4));
+  const cat = (...arrs) => { const n = arrs.reduce((a, x) => a + x.length, 0), o = new Uint8Array(n); let p = 0; for (const x of arrs) { o.set(x, p); p += x.length; } return o; };
+  async function sha256hex(s) { const d = await subtle().digest("SHA-256", te.encode(s)); return [...new Uint8Array(d)].map(b => b.toString(16).padStart(2, "0")).join(""); }
+
+  async function pipe(bytes, Stream, mode) {
+    const s = new Blob([bytes]).stream().pipeThrough(new Stream(mode));
+    return new Uint8Array(await new Response(s).arrayBuffer());
+  }
+  const canZip = () => typeof CompressionStream === "function" && typeof DecompressionStream === "function";
+
+  // ------------------------------------------------------------------ crypto
+  function newSecrets() { return { space: b64url(rand(16)), key: b64url(rand(32)), token: b64url(rand(32)) }; }
+  const keyCache = new Map();
+  async function dataKey(k) {
+    if (!keyCache.has(k)) keyCache.set(k, await subtle().importKey("raw", unb64url(k), { name: "AES-GCM" }, false, ["encrypt", "decrypt"]));
+    return keyCache.get(k);
+  }
+  const aad = (appId, space, version) => te.encode(`th-sync/v${VERSION}|${appId}|${space}|${version}`);
+  // envelope: [1 format][1 flags: 1 = gzip][12 IV][AES-GCM ciphertext+tag], base64
+  async function seal(key, appId, space, version, text) {
+    let data = te.encode(text), flags = 0;
+    if (canZip()) { data = await pipe(data, CompressionStream, "gzip"); flags = 1; }
+    const iv = rand(12);
+    const ct = new Uint8Array(await subtle().encrypt({ name: "AES-GCM", iv, additionalData: aad(appId, space, version) }, await dataKey(key), data));
+    return b64(cat(Uint8Array.of(VERSION, flags), iv, ct));
+  }
+  async function open(key, appId, space, version, ctB64) {
+    const all = unb64(ctB64);
+    if (all[0] !== VERSION) throw new Error("unknown format");
+    const iv = all.subarray(2, 14), ct = all.subarray(14);
+    let data = new Uint8Array(await subtle().decrypt({ name: "AES-GCM", iv, additionalData: aad(appId, space, version) }, await dataKey(key), ct));
+    if (all[1] & 1) data = await pipe(data, DecompressionStream, "gzip");
+    return td.decode(data);
+  }
+
+  /* Pairing with a 6-digit code – how strong is it, honestly?
+     A 6-digit code has only 1,000,000 possibilities (~20 bits). Its safety comes from being ONLINE and SHORT-LIVED:
+       - the server hands out each code's blob exactly once, deletes it after 10 minutes, and limits lookups to
+         10 per minute (60 per hour) per IP address – an attacker guessing blindly has roughly a 1-in-10,000 chance
+         per IP during the 10 minutes, and a successful guess "uses up" the code, so the real device sees
+         "code didn't work" and the linking screen never says "Linked" – a visible warning sign;
+       - PBKDF2 (600,000 rounds, random salt) only slows down someone who already holds the blob (e.g. whoever runs
+         the server): trying all million codes then costs hours of GPU time, not years. It is NOT strong offline.
+     So: fine for linking your own phone while you hold both devices, not a long-term secret.
+     The QR code / link is the strong path: it carries the 256-bit keys in the URL #fragment, which browsers never
+     send to any server – nothing guessable is involved at all. */
+  async function codeKey(code, salt) {
+    const base = await subtle().importKey("raw", te.encode(code), "PBKDF2", false, ["deriveKey"]);
+    return subtle().deriveKey({ name: "PBKDF2", hash: "SHA-256", salt, iterations: PBKDF2_ITER }, base, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
+  }
+  async function pairSeal(code, appId, payload) {
+    const salt = rand(16), iv = rand(12);
+    const ct = new Uint8Array(await subtle().encrypt({ name: "AES-GCM", iv, additionalData: te.encode("th-pair/v1|" + appId) }, await codeKey(code, salt), te.encode(JSON.stringify(payload))));
+    return b64(cat(Uint8Array.of(1), salt, iv, ct));
+  }
+  async function pairOpen(code, appId, blob) {
+    const all = unb64(blob);
+    if (all[0] !== 1) throw new Error("unknown format");
+    const pt = await subtle().decrypt({ name: "AES-GCM", iv: all.subarray(17, 29), additionalData: te.encode("th-pair/v1|" + appId) }, await codeKey(code, all.subarray(1, 17)), all.subarray(29));
+    return JSON.parse(td.decode(pt));
+  }
+  // link: <app url>#link=<appId>.<base64url([1][16 space][32 key][32 token])>
+  function linkEncode(appId, s) { return appId + "." + b64url(cat(Uint8Array.of(1), unb64url(s.space), unb64url(s.key), unb64url(s.token))); }
+  function linkDecode(str) {
+    const m = /(?:#link=|^)([a-z0-9-]+)\.([A-Za-z0-9_-]{100,120})$/.exec(String(str || "").trim());
+    if (!m) return null;
+    const b = unb64url(m[2]);
+    if (b.length !== 81 || b[0] !== 1) return null;
+    return { app: m[1], space: b64url(b.subarray(1, 17)), key: b64url(b.subarray(17, 49)), token: b64url(b.subarray(49, 81)) };
+  }
+
+  // ------------------------------------------------------------------ QR code (byte mode, ECC M, versions 1–20)
+  const QR = (() => {
+    const ECC = [-1, 10, 16, 26, 18, 24, 16, 18, 22, 22, 26, 30, 22, 22, 24, 24, 28, 28, 26, 26, 26];
+    const BLK = [-1, 1, 1, 1, 2, 2, 4, 4, 4, 5, 5, 5, 8, 9, 9, 10, 10, 11, 13, 14, 16];
+    const mul = (x, y) => { let z = 0; for (let i = 7; i >= 0; i--) { z = (z << 1) ^ ((z >>> 7) * 0x11D); z ^= ((y >>> i) & 1) * x; } return z; };
+    const rawMods = v => { let r = (16 * v + 128) * v + 64; if (v >= 2) { const n = Math.floor(v / 7) + 2; r -= (25 * n - 10) * n - 55; if (v >= 7) r -= 36; } return r; };
+    const dataCw = v => Math.floor(rawMods(v) / 8) - ECC[v] * BLK[v];
+    function rsDiv(d) { const r = new Array(d - 1).fill(0).concat([1]); let root = 1; for (let i = 0; i < d; i++) { for (let j = 0; j < r.length; j++) { r[j] = mul(r[j], root); if (j + 1 < r.length) r[j] ^= r[j + 1]; } root = mul(root, 2); } return r; }
+    function rsRem(data, div) { const r = div.map(() => 0); for (const b of data) { const f = b ^ r.shift(); r.push(0); div.forEach((c, i) => { r[i] ^= mul(c, f); }); } return r; }
+    function encode(text, forceMask) {
+      const bytes = [...te.encode(text)];
+      let v = 1; for (; v <= 20; v++) { if (4 + (v < 10 ? 8 : 16) + bytes.length * 8 <= dataCw(v) * 8) break; }
+      if (v > 20) throw new Error("too long for a QR code");
+      const bits = [], put = (val, n) => { for (let i = n - 1; i >= 0; i--) bits.push((val >>> i) & 1); };
+      put(4, 4); put(bytes.length, v < 10 ? 8 : 16); bytes.forEach(b => put(b, 8));
+      const cap = dataCw(v) * 8;
+      put(0, Math.min(4, cap - bits.length)); put(0, (8 - bits.length % 8) % 8);
+      for (let p = 0xEC; bits.length < cap; p ^= 0xEC ^ 0x11) put(p, 8);
+      const data = []; for (let i = 0; i < bits.length; i += 8) data.push(bits.slice(i, i + 8).reduce((a, b) => a << 1 | b, 0));
+      // split into blocks, add error correction, interleave
+      const nb = BLK[v], el = ECC[v], raw = Math.floor(rawMods(v) / 8), nShort = nb - raw % nb, shortLen = Math.floor(raw / nb), div = rsDiv(el), blocks = [];
+      for (let i = 0, k = 0; i < nb; i++) { const d = data.slice(k, k + shortLen - el + (i < nShort ? 0 : 1)); k += d.length; const e = rsRem(d, div); if (i < nShort) d.push(0); blocks.push(d.concat(e)); }
+      const cw = []; for (let i = 0; i < blocks[0].length; i++) blocks.forEach((b, j) => { if (i !== shortLen - el || j >= nShort) cw.push(b[i]); });
+      // draw
+      const size = v * 4 + 17, M = [...Array(size)].map(() => new Array(size).fill(false)), F = [...Array(size)].map(() => new Array(size).fill(false));
+      const set = (x, y, d) => { M[y][x] = d; F[y][x] = true; };
+      for (let i = 0; i < size; i++) { set(6, i, i % 2 === 0); set(i, 6, i % 2 === 0); }
+      const finder = (cx, cy) => { for (let dy = -4; dy <= 4; dy++) for (let dx = -4; dx <= 4; dx++) { const x = cx + dx, y = cy + dy, dist = Math.max(Math.abs(dx), Math.abs(dy)); if (x >= 0 && x < size && y >= 0 && y < size) set(x, y, dist !== 2 && dist !== 4); } };
+      finder(3, 3); finder(size - 4, 3); finder(3, size - 4);
+      if (v > 1) {
+        const n = Math.floor(v / 7) + 2, step = Math.ceil((v * 4 + 4) / (n * 2 - 2)) * 2, pos = [6];
+        for (let p = size - 7; pos.length < n; p -= step) pos.splice(1, 0, p);
+        pos.forEach((a, i) => pos.forEach((b, j) => { if ((i === 0 && j === 0) || (i === 0 && j === n - 1) || (i === n - 1 && j === 0)) return; for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) set(a + dx, b + dy, Math.max(Math.abs(dx), Math.abs(dy)) !== 1); }));
+      }
+      const format = mask => { const d = (0 << 3) | mask; let r = d; for (let i = 0; i < 10; i++) r = (r << 1) ^ ((r >>> 9) * 0x537); const b = ((d << 10) | r) ^ 0x5412, g = i => ((b >>> i) & 1) === 1;
+        for (let i = 0; i <= 5; i++) set(8, i, g(i)); set(8, 7, g(6)); set(8, 8, g(7)); set(7, 8, g(8)); for (let i = 9; i < 15; i++) set(14 - i, 8, g(i));
+        for (let i = 0; i < 8; i++) set(size - 1 - i, 8, g(i)); for (let i = 8; i < 15; i++) set(8, size - 15 + i, g(i)); set(8, size - 8, true); };
+      format(0);
+      if (v >= 7) { let r = v; for (let i = 0; i < 12; i++) r = (r << 1) ^ ((r >>> 11) * 0x1F25); const b = (v << 12) | r; for (let i = 0; i < 18; i++) { const d = ((b >>> i) & 1) === 1, a = size - 11 + i % 3, c = Math.floor(i / 3); set(a, c, d); set(c, a, d); } }
+      let i = 0;
+      for (let right = size - 1; right >= 1; right -= 2) {
+        if (right === 6) right = 5;
+        for (let vert = 0; vert < size; vert++) for (let j = 0; j < 2; j++) {
+          const x = right - j, up = ((right + 1) & 2) === 0, y = up ? size - 1 - vert : vert;
+          if (!F[y][x] && i < cw.length * 8) { M[y][x] = ((cw[i >>> 3] >>> (7 - (i & 7))) & 1) === 1; i++; }
+        }
+      }
+      const MASKS = [(x, y) => (x + y) % 2 === 0, (x, y) => y % 2 === 0, x => x % 3 === 0, (x, y) => (x + y) % 3 === 0, (x, y) => (Math.floor(x / 3) + Math.floor(y / 2)) % 2 === 0,
+        (x, y) => x * y % 2 + x * y % 3 === 0, (x, y) => (x * y % 2 + x * y % 3) % 2 === 0, (x, y) => ((x + y) % 2 + x * y % 3) % 2 === 0];
+      const flip = m => { for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) if (!F[y][x] && MASKS[m](x, y)) M[y][x] = !M[y][x]; };
+      const FIND = [1, 0, 1, 1, 1, 0, 1];
+      const penalty = () => {   // the four standard rules: runs, 2x2 boxes, finder lookalikes, dark/light balance
+        let p = 0, dark = 0;
+        for (let a = 0; a < size; a++) for (const row of [true, false]) {
+          const line = []; for (let b = 0; b < size; b++) line.push(row ? M[a][b] : M[b][a]);
+          let run = 1; for (let b = 1; b < size; b++) { if (line[b] === line[b - 1]) { run++; if (run === 5) p += 3; else if (run > 5) p++; } else run = 1; }
+          const L = new Array(4).fill(false).concat(line, new Array(4).fill(false));
+          for (let i = 4; i + 7 <= size + 4; i++) {
+            if (!FIND.every((f, k) => L[i + k] === !!f)) continue;
+            if ([1, 2, 3, 4].every(k => !L[i - k]) || [7, 8, 9, 10].every(k => !L[i + k])) p += 40;
+          }
+        }
+        for (let y = 0; y < size - 1; y++) for (let x = 0; x < size - 1; x++) { const c = M[y][x]; if (c === M[y][x + 1] && c === M[y + 1][x] && c === M[y + 1][x + 1]) p += 3; }
+        M.forEach(r => r.forEach(c => { if (c) dark++; }));
+        return p + Math.floor(Math.abs(dark * 20 - size * size * 10) / (size * size)) * 10;
+      };
+      let best = 0, bestP = Infinity;
+      for (let m = 0; m < 8; m++) { flip(m); format(m); const p = penalty(); if (p < bestP) { bestP = p; best = m; } flip(m); }
+      if (forceMask >= 0 && forceMask < 8) best = forceMask;
+      flip(best); format(best);
+      return M;
+    }
+    function svg(text, px = 220) {
+      const M = encode(text), n = M.length, q = 3, w = n + q * 2; let d = "";
+      px = w * Math.max(2, Math.round(px / w));          // whole pixels per module: crisp, evenly sized squares
+      M.forEach((r, y) => r.forEach((c, x) => { if (c) d += `M${x + q} ${y + q}h1v1h-1z`; }));
+      return `<svg class="ths-qrsvg" width="${px}" height="${px}" viewBox="0 0 ${w} ${w}" shape-rendering="crispEdges" role="img" aria-label="QR code"><rect width="${w}" height="${w}" fill="#fff"/><path d="${d}" fill="#111"/></svg>`;
+    }
+    return { encode, svg };
+  })();
+
+  // ------------------------------------------------------------------ small helpers
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const LS = {
+    get(k) { try { return root.localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { root.localStorage.setItem(k, v); return true; } catch (e) { return false; } },
+    del(k) { try { root.localStorage.removeItem(k); } catch (e) { } }
+  };
+  function deviceName() {
+    const ua = (root.navigator && navigator.userAgent) || "";
+    if (/iPhone/.test(ua)) return "iPhone";
+    if (/iPad/.test(ua) || (/Macintosh/.test(ua) && root.navigator && navigator.maxTouchPoints > 1)) return "iPad";
+    if (/Android/.test(ua)) return /Mobile/.test(ua) ? "Android phone" : "Android tablet";
+    if (/CrOS/.test(ua)) return "Chromebook";
+    if (/Macintosh|Mac OS X/.test(ua)) return "Mac";
+    if (/Windows/.test(ua)) return "Windows PC";
+    if (/Linux/.test(ua)) return "Linux computer";
+    return "other device";
+  }
+  const IC = {
+    lock: '<rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/>',
+    devices: '<rect x="2.5" y="5" width="13" height="10" rx="1.6"/><path d="M6 18.5h6"/><rect x="16.5" y="8" width="5" height="11" rx="1.3"/>',
+    link: '<path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/>',
+    sync: '<path d="M20 11a8 8 0 0 0-14.3-4.3L4 8.5"/><path d="M4 4v4.5h4.5"/><path d="M4 13a8 8 0 0 0 14.3 4.3L20 15.5"/><path d="M20 20v-4.5h-4.5"/>',
+    x: '<path d="M6 6l12 12M18 6L6 18"/>', check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>', copy: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a1 1 0 0 1 1-1h10"/>',
+    phone: '<rect x="7" y="2.5" width="10" height="19" rx="2.2"/><path d="M11 18.5h2"/>', alert: '<path d="M12 3.5 21.5 20h-19z"/><path d="M12 10v4.5M12 17.2v.3"/>',
+    cloudoff: '<path d="M3 3l18 18"/><path d="M8.5 7.2A5.5 5.5 0 0 1 17 10h.5a3.5 3.5 0 0 1 2.1 6.3M16 18H7a4 4 0 0 1-1.2-7.8"/>'
+  };
+  const ic = (n, c = "") => `<svg class="ths-ic ${c}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n]}</svg>`;
+
+  const CSS = `
+.ths-pill{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 12px 0 10px;border-radius:99px;border:1px solid var(--line,#ddd);background:var(--card,#fff);color:var(--ink2,#555);font:500 .8rem/1 var(--sans,system-ui);white-space:nowrap;cursor:pointer;max-width:100%}
+.ths-pill:hover{border-color:var(--line2,#ccc);color:var(--ink,#111)}
+.ths-pill i{width:7px;height:7px;border-radius:50%;background:var(--ok,#2E7558);flex:none}
+.ths-pill[data-s="syncing"] i,.ths-pill[data-s="pending"] i{background:var(--acc,#1F3A5F);animation:ths-pulse 1.2s ease-in-out infinite}
+.ths-pill[data-s="offline"] i{background:var(--ink3,#888)}
+.ths-pill[data-s="fix"]{color:var(--bad,#B0281C);border-color:color-mix(in srgb,var(--bad,#B0281C) 35%,var(--line,#ddd))}
+.ths-pill[data-s="fix"] i{background:var(--bad,#B0281C)}
+@keyframes ths-pulse{50%{opacity:.35}}
+.ths-sec .ths-state{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px solid var(--line,#ddd);border-radius:14px;background:var(--bg,#f6f6f6);margin-bottom:16px}
+.ths-sec .ths-state .ths-ic{width:22px;height:22px;color:var(--acc,#1F3A5F)}
+.ths-sec .ths-state b{display:block;font-weight:500;font-size:.98rem}
+.ths-sec .ths-state small{display:block;color:var(--ink3,#777);font-size:.84rem;margin-top:1px}
+.ths-sec .ths-state.fix .ths-ic{color:var(--bad,#B0281C)}
+.ths-sec .ths-p{font-size:.88rem;color:var(--ink2,#555);line-height:1.5;margin:0 0 16px}
+.ths-sec .ths-row{display:flex;gap:8px;flex-wrap:wrap}
+.ths-sec .ths-row+.ths-row{margin-top:10px}
+.ths-sec .ths-quiet{display:flex;gap:18px;flex-wrap:wrap;margin-top:18px;padding-top:14px;border-top:1px solid var(--line,#ddd)}
+.ths-lnk{border:0;background:none;padding:0;color:var(--acc,#1F3A5F);font:500 .9rem var(--sans,system-ui);cursor:pointer;text-decoration:none}
+.ths-lnk:hover{text-decoration:underline;text-underline-offset:3px}
+.ths-lnk.quiet{color:var(--ink2,#555)}.ths-lnk.danger{color:var(--bad,#B0281C)}
+.ths-lnk:disabled{opacity:.45;cursor:not-allowed;text-decoration:none}
+.ths-chip{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:99px;background:var(--acc2,#eef);color:var(--acc,#1F3A5F);font:500 .76rem var(--sans,system-ui);letter-spacing:.02em;vertical-align:middle}
+.ths-sec.preview .ths-row .btn{opacity:.5;pointer-events:none}
+.ths-sec .ths-row .btn{max-width:100%;white-space:normal;height:auto;min-height:42px;padding-top:8px;padding-bottom:8px;line-height:1.25}
+.ths-scrim{position:fixed;inset:0;background:rgba(20,18,15,.4);display:flex;align-items:center;justify-content:center;z-index:80;padding:20px;animation:ths-fade .15s ease-out}
+@keyframes ths-fade{from{opacity:0}}
+.ths-modal{background:var(--card,#fff);color:var(--ink,#111);border:1px solid var(--line,#ddd);border-radius:20px;width:100%;max-width:520px;max-height:calc(100dvh - 40px);overflow:auto;font-family:var(--sans,system-ui);box-shadow:0 24px 60px -20px rgba(0,0,0,.35)}
+.ths-modal.wide{max-width:760px}
+.ths-mh{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:26px 28px 6px}
+.ths-mh h2{font-family:var(--serif,Georgia,serif);font-weight:500;font-size:1.55rem;line-height:1.15;margin:0}
+.ths-x{width:36px;height:36px;border-radius:10px;border:0;background:none;color:var(--ink2,#555);display:grid;place-items:center;cursor:pointer;flex:none;margin:-4px -8px 0 0}
+.ths-x:hover{background:var(--bg2,#eee)}
+.ths-x .ths-ic{width:20px;height:20px}
+.ths-mb{padding:8px 28px 8px}
+.ths-mb p{margin:0 0 12px;line-height:1.55;color:var(--ink2,#555);font-size:.96rem}
+.ths-mb p b{color:var(--ink,#111);font-weight:500}
+.ths-mf{display:flex;justify-content:flex-end;gap:10px;padding:16px 28px 26px;flex-wrap:wrap}
+.ths-ic{width:18px;height:18px;flex:none}
+.ths-pair{display:grid;grid-template-columns:1fr auto;gap:28px;align-items:center;margin:10px 0 6px}
+.ths-codebox{min-width:0}
+.ths-label{font:500 .74rem var(--sans,system-ui);letter-spacing:.14em;text-transform:uppercase;color:var(--ink3,#777);margin-bottom:8px}
+.ths-code{font-family:var(--serif,Georgia,serif);font-size:3.1rem;line-height:1;letter-spacing:.06em;color:var(--ink,#111);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ths-code span{display:inline-block;width:.45em}
+.ths-timer{display:flex;align-items:center;gap:10px;margin-top:14px;font-size:.86rem;color:var(--ink3,#777);font-variant-numeric:tabular-nums}
+.ths-bar{flex:1;height:3px;border-radius:3px;background:var(--bg2,#eee);overflow:hidden;max-width:180px}
+.ths-bar i{display:block;height:100%;background:var(--hl,var(--acc,#1F3A5F));transition:width 1s linear}
+.ths-steps{margin:18px 0 0;padding:0;list-style:none;counter-reset:s;font-size:.92rem;color:var(--ink2,#555)}
+.ths-steps li{counter-increment:s;display:flex;gap:10px;margin-bottom:7px;line-height:1.45}
+.ths-steps b{font-weight:500;color:var(--ink,#111)}
+.ths-steps li::before{content:counter(s);flex:none;width:20px;height:20px;border-radius:50%;background:var(--acc2,#eef);color:var(--acc,#1F3A5F);font-size:.74rem;font-weight:500;display:grid;place-items:center;margin-top:1px}
+.ths-qr{display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px 16px 12px;border:1px solid var(--line,#ddd);border-radius:16px;background:#fff}
+.ths-qr svg{display:block;border-radius:6px}
+.ths-qr .ths-lnk{font-size:.85rem;display:inline-flex;align-items:center;gap:6px;color:#1A1C20}
+.ths-qr small{font-size:.76rem;color:#6a665f;text-align:center;max-width:200px;line-height:1.35}
+.ths-note{display:flex;gap:10px;align-items:flex-start;font-size:.84rem;color:var(--ink3,#777);line-height:1.45;margin-top:18px;padding-top:14px;border-top:1px solid var(--line,#ddd)}
+.ths-note .ths-ic{width:16px;height:16px;margin-top:2px}
+.ths-done{display:flex;gap:12px;align-items:center;padding:14px 16px;border-radius:14px;background:var(--okbg,#e5f0e8);color:var(--ok,#2E7558);font-weight:500;margin-top:16px}
+.ths-wait{display:flex;gap:10px;align-items:center;font-size:.88rem;color:var(--ink3,#777);margin-top:16px}
+.ths-wait i{width:7px;height:7px;border-radius:50%;background:var(--acc,#1F3A5F);animation:ths-pulse 1.2s ease-in-out infinite}
+.ths-in{width:100%;height:68px;border:1px solid var(--line2,#ccc);border-radius:14px;background:var(--card,#fff);color:var(--ink,#111);text-align:center;font:500 2.1rem var(--serif,Georgia,serif);letter-spacing:.32em;padding:0 0 0 .32em;font-variant-numeric:tabular-nums}
+.ths-in::placeholder{color:var(--line2,#ccc);letter-spacing:.32em}
+.ths-in:focus{outline:2px solid color-mix(in srgb,var(--acc,#1F3A5F) 55%,transparent);outline-offset:1px;border-color:transparent}
+.ths-in.small{font:400 .95rem var(--sans,system-ui);letter-spacing:0;height:46px;text-align:left;padding:0 14px}
+.ths-in.small::placeholder{letter-spacing:0;color:var(--ink3,#888)}
+.ths-err{color:var(--bad,#B0281C);font-size:.88rem;margin-top:10px;min-height:1.3em}
+.ths-or{display:flex;align-items:center;gap:12px;margin:20px 0 14px;color:var(--ink3,#777);font-size:.8rem;letter-spacing:.12em;text-transform:uppercase}
+.ths-or::before,.ths-or::after{content:"";flex:1;height:1px;background:var(--line,#ddd)}
+.ths-two{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0 4px}
+.ths-ver{border:1px solid var(--line,#ddd);border-radius:16px;padding:16px 16px 14px;background:var(--bg,#f6f6f6);min-width:0}
+.ths-ver .ths-label{margin-bottom:6px}
+.ths-ver b{display:block;font-family:var(--serif,Georgia,serif);font-weight:500;font-size:1.2rem;line-height:1.2;color:var(--ink,#111)}
+.ths-ver small{display:block;color:var(--ink2,#555);font-size:.86rem;margin-top:6px;line-height:1.4}
+.ths-ver .ths-ic{width:22px;height:22px;color:var(--acc,#1F3A5F);margin-bottom:10px}
+.ths-busy{opacity:.6;pointer-events:none}
+@media (max-width:760px){
+  .ths-scrim{align-items:flex-end;padding:0}
+  .ths-modal{border-radius:22px 22px 0 0;max-height:94dvh;border-bottom:0;padding-bottom:env(safe-area-inset-bottom)}
+  .ths-mh{padding:22px 20px 4px}.ths-mb{padding:8px 20px}.ths-mf{padding:14px 20px 22px}
+  .ths-mf .btn{flex:1}
+  .ths-pair{grid-template-columns:1fr;gap:18px}
+  .ths-code{font-size:2.7rem}
+  .ths-qr{flex-direction:row;align-items:center;gap:14px;padding:12px}
+  .ths-qr .ths-qrside{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+  .ths-qr small{text-align:left}
+  .ths-two{grid-template-columns:1fr}
+  .ths-sec .ths-row .btn{flex:1 1 100%}
+}
+@media (min-width:761px){.ths-qr .ths-qrside{display:contents}}
+`;
+
+  // ------------------------------------------------------------------ the sync controller
+  function create(A) {
+    const appId = A.appId, appName = A.appName || "the app", MK = A.storageKey + ".sync", url = String(A.url || "").replace(/\/+$/, "");
+    const cls = Object.assign({ pri: "btn pri", ghost: "btn ghost", danger: "btn ghost danger" }, A.cls || {});
+    const enabled = !!url && !A.demo, nowMs = () => Date.now();
+    let meta = null; try { meta = JSON.parse(LS.get(MK) || "null"); } catch (e) { meta = null; }
+    if (meta && !(meta.space && meta.key && meta.token)) meta = null;
+    const saveMeta = () => { if (meta) LS.set(MK, JSON.stringify(meta)); else LS.del(MK); };
+    let st = { s: meta ? (meta.off ? meta.off : "idle") : "off", err: "", at: meta ? meta.syncedAt || 0 : 0 };
+    let busy = false, again = false, applying = false, joiningNow = false, pushT = null, retryT = null, fails = 0, conflict = null, pollT = null, lastFocus = 0, pendingLink = null, started = false;
+    const did = (() => { let d = LS.get(A.storageKey + ".device"); if (!d) { d = b64url(rand(9)); LS.set(A.storageKey + ".device", d); } return d; })();
+
+    // a link opened on this device: remember it, and take the secrets out of the address bar at once
+    function takeLink() {
+      if (!root.location || !/#link=/.test(location.hash)) return null;
+      const lk = linkDecode(location.hash);
+      try { history.replaceState(null, "", location.pathname + location.search); } catch (e) { }
+      return lk || { app: "" };
+    }
+    pendingLink = takeLink();
+
+    // -------------------------------------------------------------- transport
+    async function api(method, path, o = {}) {
+      const h = {};
+      if (o.token) h.Authorization = "Bearer " + o.token;
+      if (o.ifMatch !== undefined) h["If-Match"] = String(o.ifMatch);
+      if (o.body) h["Content-Type"] = "application/json";
+      const ctl = typeof AbortController === "function" ? new AbortController() : null, t = ctl && setTimeout(() => ctl.abort(), o.timeout || 20000);
+      let r;
+      try { r = await fetch(url + path, { method, headers: h, body: o.body ? JSON.stringify(o.body) : undefined, cache: "no-store", signal: ctl && ctl.signal }); }
+      catch (e) { const x = new Error("offline"); x.offline = true; throw x; }
+      finally { t && clearTimeout(t); }
+      let j = {}; try { j = await r.json(); } catch (e) { }
+      if (r.status >= 500 || r.status === 429 && !o.allow429) { const x = new Error(j.error || "server " + r.status); x.offline = r.status >= 500; x.status = r.status; x.j = j; throw x; }
+      return { status: r.status, j };
+    }
+
+    // -------------------------------------------------------------- status
+    function setStatus(s, err = "") { st.s = s; st.err = err; if (s === "synced") st.at = nowMs(); refresh(); }
+    const needsFix = () => ["conflict", "gone", "denied", "toolarge", "broken"].includes(st.s);
+    function ago(t) {
+      const d = Math.max(0, nowMs() - t) / 1000;
+      if (d < 45) return "just now"; if (d < 90) return "1 min ago"; if (d < 3600) return Math.round(d / 60) + " min ago";
+      if (d < 7200) return "1 hour ago"; if (d < 86400) return Math.round(d / 3600) + " hours ago"; return new Date(t).toLocaleDateString();
+    }
+    function pillText() {
+      if (needsFix()) return "Tap to fix";
+      if (st.s === "offline") return "Offline – will sync";
+      if (st.s === "syncing" || st.s === "pending") return "Syncing…";
+      return "Synced · " + ago(st.at || meta && meta.syncedAt || nowMs());
+    }
+    const pillState = () => needsFix() ? "fix" : st.s === "offline" ? "offline" : st.s === "syncing" || st.s === "pending" ? "syncing" : "ok";
+    function pillHTML() {
+      if (!enabled || !meta) return "";
+      return `<button type="button" class="ths-pill" data-ths-pill data-ths="pill" data-s="${pillState()}" aria-live="polite" title="${needsFix() ? "Sync needs you – tap" : "Tap to sync now"}"><i></i><span>${esc(pillText())}</span></button>`;
+    }
+    function refresh() {
+      if (typeof document === "undefined") return;
+      document.querySelectorAll("[data-ths-pill]").forEach(p => { p.dataset.s = pillState(); const sp = p.querySelector("span"); if (sp) sp.textContent = pillText(); });
+      document.querySelectorAll("[data-ths-section]").forEach(el => { el.outerHTML = sectionHTML(); });
+      const shells = document.querySelectorAll("[data-ths-pillslot]");
+      shells.forEach(s => { const want = !!(enabled && meta); if (want !== !!s.querySelector("[data-ths-pill]")) s.innerHTML = pillHTML(); });
+      if (A.onStatus) try { A.onStatus(st.s); } catch (e) { }
+    }
+
+    // -------------------------------------------------------------- core sync cycle
+    const localNow = () => String(A.getState());
+    async function envelopeFor(text, version) {
+      return seal(meta.key, appId, meta.space, version, JSON.stringify({ app: appId, at: meta.changedAt || nowMs(), dev: deviceName(), did, state: text }));
+    }
+    async function fetchRemote() {
+      const r = await api("GET", "/v1/space/" + meta.space, { token: meta.token });
+      if (r.status !== 200) return r;
+      let env;
+      try { env = JSON.parse(await open(meta.key, appId, meta.space, r.j.version, r.j.ciphertext)); }
+      catch (e) { return { status: -1 }; }
+      if (env.app !== appId || typeof env.state !== "string") return { status: -1 };
+      return { status: 200, version: r.j.version, updatedAt: r.j.updatedAt, env };
+    }
+    async function applyRemote(rem) {
+      applying = true;
+      try { await A.applyState(rem.env.state); } finally { applying = false; }
+      meta.base = rem.version; meta.baseHash = await sha256hex(localNow()); meta.syncedAt = nowMs(); meta.changedAt = 0; saveMeta();
+    }
+    async function push(text, hash, base) {
+      const v = base + 1, ct = await envelopeFor(text, v);
+      if (ct.length > MAX_CT) return { status: 413 };
+      const r = await api("PUT", "/v1/space/" + meta.space, { token: meta.token, ifMatch: base, body: { ciphertext: ct } });
+      if (r.status === 200) { meta.base = r.j.version; meta.baseHash = hash; meta.syncedAt = nowMs(); saveMeta(); }
+      return r;
+    }
+    function trouble(r) {
+      if (r.status === 404) { meta.off = "gone"; saveMeta(); setStatus("gone"); return true; }
+      if (r.status === 403 || r.status === 401) { setStatus("denied"); return true; }
+      if (r.status === 413) { setStatus("toolarge"); return true; }
+      if (r.status === -1) { setStatus("broken"); return true; }
+      return false;
+    }
+    async function cycle() {
+      if (!enabled || !meta || meta.off || joiningNow) return;
+      if (conflict) { setStatus("conflict"); return; }
+      if (busy) { again = true; return; }
+      busy = true; clearTimeout(retryT); clearTimeout(pushT); pushT = null;
+      if (st.s === "idle" || st.s === "pending") setStatus("syncing");
+      try {
+        const text = localNow(), h = await sha256hex(text), dirty = h !== meta.baseHash;
+        if (dirty) {
+          if (st.s !== "syncing") setStatus("syncing");
+          const r = await push(text, h, meta.base || 0);
+          if (r.status === 200) { fails = 0; setStatus("synced"); }
+          else if (r.status === 409) await reconcile(text, h);
+          else if (!trouble(r)) throw Object.assign(new Error("push " + r.status), { offline: false });
+        } else {
+          const r = await api("GET", "/v1/space/" + meta.space + "/version", { token: meta.token });
+          if (r.status === 200 && r.j.version === meta.base) { fails = 0; meta.syncedAt = nowMs(); saveMeta(); setStatus("synced"); }
+          else if (r.status === 200 && r.j.version < meta.base) { meta.base = r.j.version; meta.baseHash = ""; saveMeta(); again = true; }   // the server went backwards: never roll back, re-upload this device's copy
+          else if (r.status === 200) await reconcile(text, h);
+          else if (!trouble(r)) throw new Error("version " + r.status);
+        }
+      } catch (e) {
+        setStatus("offline", e.message);          // network down, server busy or rate-limited: keep the changes, try again later
+        retryT = setTimeout(cycle, BACKOFF[Math.min(fails++, BACKOFF.length - 1)]);
+      } finally {
+        busy = false;
+        if (again) { again = false; setTimeout(cycle, 0); }
+      }
+    }
+    // the server has a newer copy than the one this device last saw
+    async function reconcile(text, h) {
+      const rem = await fetchRemote();
+      if (rem.status !== 200) { if (!trouble(rem)) throw new Error("fetch " + rem.status); return; }
+      if (rem.version < (meta.base || 0)) { meta.base = rem.version; meta.baseHash = ""; saveMeta(); again = true; return; }
+      const dirty = h !== meta.baseHash, rh = await sha256hex(rem.env.state);
+      if (!dirty) { await applyRemote(rem); fails = 0; setStatus("synced"); return; }
+      if (rh === h) { meta.base = rem.version; meta.baseHash = h; meta.syncedAt = nowMs(); saveMeta(); fails = 0; setStatus("synced"); return; }
+      // both changed since the last sync: never pick one silently
+      conflict = { rem, localAt: meta.changedAt || nowMs() };
+      setStatus("conflict");
+      showConflict();
+    }
+
+    function changed() {
+      if (applying || joiningNow || !enabled || !meta || meta.off) return;
+      meta.changedAt = nowMs(); saveMeta();
+      if (!conflict && st.s !== "offline") setStatus("pending");
+      clearTimeout(pushT); pushT = setTimeout(cycle, DEBOUNCE);
+    }
+
+    // -------------------------------------------------------------- linking
+    async function ensureSpace() {
+      if (meta && !meta.off) return;
+      const s = newSecrets(), text = localNow();
+      const m = { v: 1, space: s.space, key: s.key, token: s.token, base: 0, baseHash: "", syncedAt: 0, changedAt: nowMs() };
+      const prev = meta; meta = m;
+      try {
+        const r = await push(text, await sha256hex(text), 0);
+        if (r.status !== 200) { meta = prev; throw Object.assign(new Error(r.status === 429 ? "busy" : "Couldn't start sync (" + r.status + ")"), { status: r.status }); }
+      } catch (e) { if (meta === m) meta = prev; throw e; }
+      saveMeta(); setStatus("synced"); schedulePoll();
+    }
+    async function makeCode() {
+      await ensureSpace();
+      const r = await api("POST", "/v1/pair", {});
+      if (r.status !== 200) throw new Error("code " + r.status);
+      const blob = await pairSeal(r.j.code, appId, { s: meta.space, k: meta.key, t: meta.token, a: appId });
+      const p = await api("PUT", "/v1/pair/" + r.j.code, { token: r.j.ticket, body: { blob } });
+      if (p.status !== 200) throw new Error("code " + p.status);
+      return { code: r.j.code, ticket: r.j.ticket, expiresAt: nowMs() + (r.j.ttl || 600000) };
+    }
+    function linkURL() {
+      const base = A.linkBase || (root.location ? location.href.split("#")[0] : "");
+      return base + "#link=" + linkEncode(appId, meta);
+    }
+    // join with a 6-digit code or a link; returns the secrets
+    async function secretsFrom(input) {
+      const raw = String(input || "").trim(), lk = linkDecode(raw);
+      if (lk) { if (lk.app !== appId) throw new Error(`That link is for a different app, not ${appName}.`); return lk; }
+      const code = raw.replace(/\D/g, "");
+      if (code.length !== 6) throw new Error("Enter the 6 digits shown on your other device.");
+      const r = await api("GET", "/v1/pair/" + code, { allow429: true });
+      if (r.status === 429) throw new Error(`Too many tries. Wait ${r.j.retryAfter > 90 ? Math.ceil(r.j.retryAfter / 60) + " minutes" : "a minute"} and try again.`);
+      if (r.status !== 200) throw new Error("That code didn't work. Codes work once and for 10 minutes – make a new one on your other device.");
+      let p; try { p = await pairOpen(code, appId, r.j.blob); } catch (e) { throw new Error("That code didn't work. Make a new one on your other device."); }
+      if (p.a !== appId) throw new Error(`That code is for a different app, not ${appName}.`);
+      return { space: p.s, key: p.k, token: p.t };
+    }
+    async function join(sec) {
+      if (joiningNow) throw new Error("Already linking – one moment.");
+      joiningNow = true;
+      try { return await joinInner(sec); } finally { joiningNow = false; }
+    }
+    async function joinInner(sec) {
+      while (busy) await new Promise(r => setTimeout(r, 50));      // let a running sync finish first
+      clearTimeout(pushT); clearTimeout(retryT); pushT = null;
+      const prev = meta;
+      meta = { v: 1, space: sec.space, key: sec.key, token: sec.token, base: 0, baseHash: "", syncedAt: 0, changedAt: 0 };
+      let rem;
+      try { rem = await fetchRemote(); } catch (e) { meta = prev; throw new Error("You seem to be offline. Connect and try again."); }
+      if (rem.status !== 200) {
+        meta = prev;
+        throw new Error(rem.status === 404 ? "Sync was turned off on the other device, so there's nothing to link to." : rem.status === 403 ? "That link doesn't open your data any more." : "Couldn't unlock the synced copy – make a new code on your other device.");
+      }
+      if (A.validate) { try { A.validate(rem.env.state); } catch (e) { meta = prev; throw new Error(`That isn't ${appName} data.`); } }
+      if (A.hasData && A.hasData()) LS.set(A.storageKey + ".before-link", JSON.stringify({ at: nowMs(), state: localNow() }));
+      conflict = null;
+      await applyRemote(rem);
+      fails = 0; setStatus("synced"); schedulePoll();
+      return rem;
+    }
+    function unlink() { meta = null; conflict = null; saveMeta(); clearTimeout(pushT); clearTimeout(retryT); setStatus("off"); }
+    async function erase() {
+      if (!meta) return;
+      const r = await api("DELETE", "/v1/space/" + meta.space, { token: meta.token });
+      if (r.status !== 200 && r.status !== 404) throw new Error("erase " + r.status);
+      unlink();
+    }
+
+    // -------------------------------------------------------------- triggers
+    function schedulePoll() {
+      if (pollT || !enabled || typeof setInterval !== "function") return;
+      pollT = setInterval(() => { if (meta && !meta.off && (typeof document === "undefined" || !document.hidden)) cycle(); }, POLL);
+    }
+    function start() {
+      if (started) return; started = true;
+      if (typeof document !== "undefined") {
+        injectCSS();
+        document.addEventListener("click", onClick);
+        document.addEventListener("input", onInput);
+        document.addEventListener("visibilitychange", () => { if (!document.hidden) wake(); else if (pushT) { clearTimeout(pushT); cycle(); } });
+        root.addEventListener("focus", wake);
+        root.addEventListener("online", () => { fails = 0; wake(true); });
+        root.addEventListener("hashchange", () => { const lk = takeLink(); if (lk) linkPrompt(lk); });   // link opened in a tab that already shows the app
+        setInterval(() => { if (st.s === "synced") refresh(); }, 30000);
+      }
+      if (enabled && meta && !meta.off) { schedulePoll(); cycle(); }
+      if (pendingLink) setTimeout(() => linkPrompt(pendingLink), 0);
+      refresh();
+    }
+    function wake(force) { const t = nowMs(); if (!force && t - lastFocus < 2000) return; lastFocus = t; cycle(); }
+
+    // -------------------------------------------------------------- UI: dialogs
+    let dlg = null, dlgKind = "", codeT = null, codeState = null;
+    function injectCSS() { if (document.getElementById("ths-css")) return; const s = document.createElement("style"); s.id = "ths-css"; s.textContent = CSS; document.head.appendChild(s); }
+    function dialog(kind, title, body, foot = "", o = {}) {
+      closeDialog();
+      const el = document.createElement("div");
+      el.className = "ths-scrim"; el.dataset.thsDialog = kind;
+      el.innerHTML = `<div class="ths-modal ${o.wide ? "wide" : ""}" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="ths-mh"><h2>${esc(title)}</h2>${o.noClose ? "" : `<button class="ths-x" data-ths="close" aria-label="Close">${ic("x")}</button>`}</div><div class="ths-mb">${body}</div>${foot ? `<div class="ths-mf">${foot}</div>` : ""}</div>`;
+      if (!o.noClose) el.addEventListener("click", e => { if (e.target === el) closeDialog(); });
+      document.body.appendChild(el); dlg = el; dlgKind = kind;
+      const f = el.querySelector("[autofocus]"); if (f) setTimeout(() => f.focus(), 60);
+      return el;
+    }
+    function closeDialog() {
+      if (dlgKind === "link" && codeState && !codeState.used && !codeState.expired) api("DELETE", "/v1/pair/" + codeState.code, { token: codeState.ticket }).catch(() => { });
+      clearInterval(codeT); codeT = null; codeState = null;
+      if (dlg) { dlg.remove(); dlg = null; dlgKind = ""; }
+    }
+    if (typeof document !== "undefined") document.addEventListener("keydown", e => { if (e.key === "Escape" && dlg && dlgKind !== "conflict") closeDialog(); });
+    const b = (label, act, c = cls.ghost, extra = "") => `<button type="button" class="${c}" data-ths="${act}" ${extra}>${label}</button>`;
+    function toast(m) { if (A.toast) A.toast(m); }
+    function errText(e) { return e && e.offline ? "You seem to be offline. Connect to the internet and try again." : e && e.status === 429 ? "Too many tries right now. Wait a few minutes and try again." : (e && e.message) || "Something went wrong. Try again."; }
+
+    async function openLink() {
+      if (!enabled) return;
+      const el = dialog("link", "Link another device", `<div class="ths-wait"><i></i>Making a code…</div>`, "", { wide: true });
+      let c;
+      try { c = await makeCode(); }
+      catch (e) { if (dlg === el) el.querySelector(".ths-mb").innerHTML = `<p>${esc(errText(e))}</p>`; refresh(); return; }
+      if (dlg !== el) { api("DELETE", "/v1/pair/" + c.code, { token: c.ticket }).catch(() => { }); return; }
+      codeState = { ...c, used: false, expired: false };
+      const link = linkURL(), digits = c.code.slice(0, 3) + "<span></span>" + c.code.slice(3);
+      el.querySelector(".ths-mb").innerHTML = `
+        <div class="ths-pair">
+          <div class="ths-codebox">
+            <div class="ths-label">Your code</div>
+            <div class="ths-code" data-ths-code="${c.code}" aria-label="Code ${c.code.split("").join(" ")}">${digits}</div>
+            <div class="ths-timer"><span data-ths-left></span><span class="ths-bar"><i data-ths-bar style="width:100%"></i></span></div>
+            <ol class="ths-steps"><li><span>Open ${esc(appName)} on your other device.</span></li><li><span>Choose <b>Already use it on another device?</b> on the welcome screen – or <b>I already use it on another device</b> in Settings.</span></li><li><span>Enter this code. It works once.</span></li></ol>
+          </div>
+          <div class="ths-qr">${QR.svg(link, 168)}<div class="ths-qrside"><small>Or scan with the other device's camera</small><button type="button" class="ths-lnk" data-ths="copyLink">${ic("copy")}Copy link</button></div></div>
+        </div>
+        <div data-ths-linkstate class="ths-wait"><i></i>Waiting for your other device…</div>
+        <div class="ths-note">${ic("lock")}<span>Your data is locked on this device before it's sent – the server only ever sees scrambled text. Only show this code or QR to your own devices. Installed it on an iPhone home screen? Enter the code inside the app there – the camera opens Safari instead.</span></div>`;
+      el.dataset.link = link;
+      tickCode();
+      codeT = setInterval(tickCode, 1000);
+    }
+    let polling = 0;
+    async function tickCode() {
+      if (!codeState || !dlg) return;
+      const left = Math.max(0, codeState.expiresAt - nowMs()), m = Math.floor(left / 60000), s = Math.floor(left / 1000) % 60;
+      const L = dlg.querySelector("[data-ths-left]"), B = dlg.querySelector("[data-ths-bar]");
+      if (L) L.textContent = left > 0 ? `Expires in ${m}:${String(s).padStart(2, "0")}` : "Expired";
+      if (B) B.style.width = (left / 600000 * 100).toFixed(1) + "%";
+      if (left <= 0 && !codeState.used) {
+        codeState.expired = true; clearInterval(codeT);
+        const ls = dlg.querySelector("[data-ths-linkstate]");
+        if (ls) { ls.className = "ths-wait"; ls.innerHTML = `This code has expired. ${b("Make a new code", "link", "ths-lnk")}`; }
+        const cd = dlg.querySelector(".ths-code"); if (cd) cd.style.opacity = ".3";
+        return;
+      }
+      if (++polling % 3 !== 0) return;          // ask the server every 3 s whether the code was used
+      try {
+        const r = await api("GET", `/v1/pair/${codeState.code}/status`, { token: codeState.ticket });
+        if (codeState && r.status === 200 && r.j.state === "used") {
+          codeState.used = true; clearInterval(codeT);
+          const ls = dlg && dlg.querySelector("[data-ths-linkstate]");
+          if (ls) { ls.className = "ths-done"; ls.innerHTML = `${ic("check")}<span>Linked – your other device now has everything from this one.</span>`; }
+          const cd = dlg && dlg.querySelector(".ths-timer"); if (cd) cd.style.visibility = "hidden";
+        }
+      } catch (e) { }
+    }
+    function openJoin() {
+      if (!enabled) return;
+      const has = A.hasData && A.hasData();
+      dialog("join", "Link this device", `
+        <p>On the device that already has your data, open <b>Settings › Your devices › Link another device</b>. Then enter the 6-digit code it shows.</p>
+        <label class="ths-label" for="thsCode" style="display:block;margin-top:18px">6-digit code</label>
+        <input id="thsCode" class="ths-in" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="000000" autofocus aria-describedby="thsErr">
+        <div class="ths-err" id="thsErr" role="alert"></div>
+        <div class="ths-or">or</div>
+        <p style="margin:0">Scan the QR code it shows with this device's camera – or paste the copied link here:</p>
+        <input id="thsLinkIn" class="ths-in small" placeholder="Paste the link" autocomplete="off" spellcheck="false">
+        ${has ? `<div class="ths-note">${ic("alert")}<span>What's on this device now is replaced by your other device's data. A copy of it is kept on this device just in case.</span></div>` : ""}`,
+        `${b("Cancel", "close")}${b("Link this device", "joinGo", cls.pri, "disabled")}`);
+    }
+    function onInput(e) {
+      if (!dlg) return;
+      if (e.target.id === "thsCode") {
+        const d = e.target.value.replace(/\D/g, "").slice(0, 6); if (e.target.value !== d) e.target.value = d;
+        const go = dlg.querySelector('[data-ths="joinGo"]'); if (go) go.disabled = d.length !== 6;
+        dlg.querySelector("#thsErr").textContent = "";
+        if (d.length === 6 && e.inputType !== "deleteContentBackward") doJoin(d);
+      }
+      if (e.target.id === "thsLinkIn") {
+        const lk = linkDecode(e.target.value);
+        const go = dlg.querySelector('[data-ths="joinGo"]'); if (go) go.disabled = !lk;
+        if (lk) doJoin(e.target.value);
+      }
+    }
+    let joining = false;
+    async function doJoin(input) {
+      if (joining || !dlg) return; joining = true;
+      const el = dlg, err = el.querySelector("#thsErr"), go = el.querySelector('[data-ths="joinGo"]'), mb = el.querySelector(".ths-mb");
+      if (go) { go.disabled = true; go.textContent = "Linking…"; }
+      mb.classList.add("ths-busy");
+      try {
+        const sec = await secretsFrom(input);
+        await join(sec);
+        closeDialog();
+        toast(`Linked – this device now shows your ${esc(appName)} from your other device.`);
+      } catch (e) {
+        if (dlg === el) {
+          mb.classList.remove("ths-busy");
+          if (err) err.textContent = errText(e);
+          if (go) { go.textContent = "Link this device"; go.disabled = false; }
+          const ci = el.querySelector("#thsCode"); if (ci && /code/i.test(errText(e))) { ci.select(); }
+        }
+      } finally { joining = false; }
+    }
+    function linkPrompt(lk) {
+      if (!enabled) return;
+      if (!lk || lk.app !== appId) { toast("That link isn't for this app."); return; }
+      if (meta && meta.space === lk.space && !meta.off) { toast("This device is already linked."); return; }
+      const has = A.hasData && A.hasData();
+      dialog("linkok", "Link this device?", `<p>This device will show your ${esc(appName)} from your other device, and changes on either one will show up on both.</p>${has ? `<p><b>What's on this device now is replaced.</b> A copy is kept on this device just in case.</p>` : ""}<div class="ths-err" id="thsErr" role="alert"></div>`,
+        `${b("Not now", "close")}${b("Link this device", "linkGo", cls.pri)}`);
+      dlg._link = lk;
+    }
+    const fmtTime = t => { if (!t) return "–"; const d = new Date(t), now = new Date(), same = d.toDateString() === now.toDateString(), y = new Date(now - 864e5).toDateString() === d.toDateString();
+      const hm = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); return same ? "today, " + hm : y ? "yesterday, " + hm : d.toLocaleDateString([], { month: "short", day: "numeric" }) + ", " + hm; };
+    function showConflict() {
+      if (!conflict || typeof document === "undefined") return;
+      const c = conflict, loc = localNow(), dsc = s => { try { return A.describe ? A.describe(s) : ""; } catch (e) { return ""; } };
+      dialog("conflict", "Two versions", `
+        <p>${esc(appName)} was changed on this device and on another one before they could sync. Which version do you want to keep?</p>
+        <div class="ths-two">
+          <div class="ths-ver">${ic("devices")}<div class="ths-label">This device</div><b>Changed ${esc(fmtTime(c.localAt))}</b><small>${esc(dsc(loc))}</small></div>
+          <div class="ths-ver">${ic("phone")}<div class="ths-label">Your ${esc(c.rem.env.dev && c.rem.env.dev !== deviceName() ? c.rem.env.dev : "other device")}</div><b>Changed ${esc(fmtTime(c.rem.env.at || c.rem.updatedAt))}</b><small>${esc(dsc(c.rem.env.state))}</small></div>
+        </div>
+        <p style="margin-top:14px;font-size:.88rem">The one you don't keep is saved on this device as a backup. ${b("Download both as backup files", "both", "ths-lnk")}</p>`,
+        `${b("Keep this device's", "keepLocal")}${b("Use the other device's", "useRemote", cls.pri)}`, { wide: true, noClose: true });
+    }
+    async function resolve(which) {
+      const c = conflict; if (!c) return closeDialog();
+      const loc = localNow();
+      LS.set(A.storageKey + ".sync-discarded", JSON.stringify({ at: nowMs(), from: which === "local" ? "other device" : "this device", state: which === "local" ? c.rem.env.state : loc }));
+      conflict = null; closeDialog();
+      if (which === "remote") { await applyRemote(c.rem); setStatus("synced"); toast("Using the other device's version."); }
+      else { meta.base = c.rem.version; meta.baseHash = ""; saveMeta(); toast("Keeping this device's version."); }
+      cycle();
+    }
+    function download(name, text) {
+      const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([text], { type: "application/json" })); a.download = name;
+      document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    }
+    function showFix() {
+      if (st.s === "conflict") return showConflict();
+      if (st.s === "gone") return dialog("fix", "Sync was turned off", `<p>Sync was turned off on another device, and the copy on the server was erased. This device still has everything it had.</p>`,
+        `${b("Stop syncing here", "unlinkNow")}${b("Sync from this device again", "restart", cls.pri)}`);
+      if (st.s === "toolarge") return dialog("fix", "Too much to sync", `<p>Your ${esc(appName)} data has grown larger than sync can carry. Everything is still saved on this device. Download a backup to move it instead.</p>`, b("OK", "close", cls.pri));
+      return dialog("fix", "Sync can't open your data", `<p>This device's sync keys don't match the copy on the server any more – probably sync was reset from another device. Everything is still saved here.</p><p>Unlink this device, then link it again from your other device.</p>`,
+        `${b("Cancel", "close")}${b("Unlink this device", "unlinkNow", cls.pri)}`);
+    }
+    async function onClick(e) {
+      const t = e.target.closest && e.target.closest("[data-ths]"); if (!t) return;
+      e.preventDefault(); e.stopPropagation();
+      const a = t.dataset.ths;
+      if (a === "close") return closeDialog();
+      if (a === "pill") { if (needsFix()) return showFix(); fails = 0; return cycle(); }
+      if (a === "link") return openLink();
+      if (a === "join") return openJoin();
+      if (a === "joinGo") { const ci = dlg.querySelector("#thsCode"), li = dlg.querySelector("#thsLinkIn"); return doJoin(li && li.value.trim() ? li.value : ci ? ci.value : ""); }
+      if (a === "linkGo") {
+        const lk = dlg._link, el = dlg; t.disabled = true; t.textContent = "Linking…";
+        try { await join(lk); closeDialog(); toast(`Linked – this device now shows your ${esc(appName)} from your other device.`); }
+        catch (err) { if (dlg === el) { el.querySelector("#thsErr").textContent = errText(err); t.disabled = false; t.textContent = "Link this device"; } }
+        return;
+      }
+      if (a === "copyLink") {
+        const l = dlg && dlg.dataset.link; if (!l) return;
+        try { await navigator.clipboard.writeText(l); t.innerHTML = ic("check") + "Copied"; } catch (err) { prompt("Copy this link:", l); }
+        return;
+      }
+      if (a === "now") { fails = 0; await cycle(); if (st.s === "synced") toast("Synced."); return; }
+      if (a === "unlink") return dialog("unlink", "Unlink this device?", `<p>This device keeps everything it has now, but stops syncing. Your other devices keep syncing with each other.</p>`, `${b("Cancel", "close")}${b("Unlink", "unlinkNow", cls.pri)}`);
+      if (a === "unlinkNow") { closeDialog(); unlink(); toast("This device is unlinked. Everything it had is still here."); return; }
+      if (a === "erase") return dialog("erase", "Turn off sync and erase?", `<p>This erases the locked copy on the server and turns sync off on <b>all</b> your devices. Each device keeps what it has now.</p><p>You can link them again later.</p><div class="ths-err" id="thsErr" role="alert"></div>`, `${b("Cancel", "close")}${b("Turn off and erase", "eraseNow", cls.danger)}`);
+      if (a === "eraseNow") {
+        const el = dlg; t.disabled = true;
+        try { await erase(); closeDialog(); toast("Sync is off and the server copy is erased."); }
+        catch (err) { if (dlg === el) { el.querySelector("#thsErr").textContent = errText(err); t.disabled = false; } }
+        return;
+      }
+      if (a === "restart") { closeDialog(); meta = null; saveMeta(); try { await ensureSpace(); toast("Syncing from this device again – link your other devices to it."); } catch (err) { setStatus("off"); toast(errText(err)); } return; }
+      if (a === "keepLocal") return resolve("local");
+      if (a === "useRemote") return resolve("remote");
+      if (a === "both" && conflict) { const d = new Date().toISOString().slice(0, 10); download(`${appId}-this-device-${d}.json`, localNow()); setTimeout(() => download(`${appId}-other-device-${d}.json`, conflict.rem.env.state), 400); return; }
+    }
+
+    // -------------------------------------------------------------- UI: settings section
+    function sectionHTML() {
+      const wrap = (inner, c = "") => `<div class="ths-sec ${c}" data-ths-section>${inner}</div>`;
+      const intro = `<p class="ths-p">Use ${esc(appName)} on your phone and your computer. A change on one shows up on the other – locked on this device before it leaves, so no one else can read it. No account needed.</p>`;
+      if (A.demo) return wrap(`${intro}<div class="ths-row">${b(ic("link") + "Link another device", "noop", cls.ghost, "disabled")}${b("I already use it on another device", "noop", cls.ghost, "disabled")}</div><p class="ths-p" style="margin:14px 0 0"><span class="ths-chip">Works in the full app</span></p>`, "preview");
+      if (!url) return wrap(`${intro}<p class="ths-p" style="margin:0"><span class="ths-chip">Coming soon</span></p>`);
+      if (!meta) return wrap(`${intro}<div class="ths-row">${b(ic("link") + "Link another device", "link")}${b("I already use it on another device", "join")}</div>`);
+      const fix = needsFix() || meta.off;
+      const head = fix ? `<div class="ths-state fix">${ic("alert")}<div><b>${st.s === "conflict" ? "Two versions to choose from" : st.s === "gone" || meta.off ? "Sync was turned off on another device" : st.s === "toolarge" ? "Too much to sync" : "Sync can't open your data"}</b><small><button type="button" class="ths-lnk" data-ths="pill">Fix it</button></small></div></div>`
+        : `<div class="ths-state">${ic("lock")}<div><b>${st.s === "offline" ? "Offline – changes will sync when you're back" : st.s === "syncing" || st.s === "pending" ? "Syncing…" : "Synced " + ago(st.at || meta.syncedAt || nowMs())}</b><small>End-to-end encrypted · this device: ${esc(deviceName())}</small></div></div>`;
+      return wrap(`${head}<div class="ths-row">${b(ic("link") + "Link another device", "link")}${b(ic("sync") + "Sync now", "now")}</div>
+        <div class="ths-quiet">${b("Unlink this device", "unlink", "ths-lnk quiet")}${b("Turn off sync and erase the server copy", "erase", "ths-lnk danger")}</div>`);
+    }
+
+    return {
+      start, changed, cycle, pillHTML, sectionHTML, openJoin, openLink, refresh,
+      get status() { return st.s; }, get linked() { return !!meta && !meta.off && !joiningNow; }, get enabled() { return enabled; },
+      // for tests
+      _meta: () => meta, _join: async input => join(await secretsFrom(input)), _makeCode: makeCode, _unlink: unlink, _erase: erase, _linkURL: () => linkURL()
+    };
+  }
+
+  const API = { create, seal, open, pairSeal, pairOpen, newSecrets, linkEncode, linkDecode, sha256hex, qr: QR, PBKDF2_ITER, VERSION };
+  root.THSync = API;
+  if (typeof module !== "undefined" && module.exports) module.exports = API;
+})(typeof window !== "undefined" ? window : globalThis);
+</script>
+<script>
+/* ---------- icons ---------- */
+const P={
+tonight:'<path d="M5 3v8a2 2 0 0 0 2 2v8M7 3v6M9 3v8a2 2 0 0 1-2 2M17 21V3c-2 1-3 4-3 8h3"/>',
+week:'<rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/>',
+list:'<path d="M3 4h2l2.4 11h11L21 7.5H6.2"/><circle cx="9" cy="19.5" r="1.4"/><circle cx="17" cy="19.5" r="1.4"/>',
+book:'<path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5zM5 19.5A1.5 1.5 0 0 0 6.5 21H19"/>',
+wins:'<path d="M4 20V11M10 20V5M16 20v-7M22 20H2"/>',
+gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+plus:'<path d="M12 5v14M5 12h14"/>',x:'<path d="M6 6l12 12M18 6L6 18"/>',check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+dice:'<rect x="3.5" y="3.5" width="17" height="17" rx="4"/><circle cx="8.5" cy="8.5" r="1.2"/><circle cx="15.5" cy="15.5" r="1.2"/><circle cx="12" cy="12" r="1.2"/>',
+swap:'<path d="M4 8h14l-3-3M20 16H6l3 3"/>',clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+heart:'<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',
+fridge:'<rect x="5" y="2.5" width="14" height="19" rx="3"/><path d="M5 10h14M8.5 6v2M8.5 13v3"/>',
+chev:'<path d="M9 6l6 6-6 6"/>',back:'<path d="M15 6l-6 6 6 6"/>',fork:'<path d="M7 3v18M4 3v5a3 3 0 0 0 6 0V3M17 21V3c-2 1-3 4-3 8h3"/>',
+bowl:'<path d="M3 11h18a9 9 0 0 1-18 0zM8 7c0-2 2-2 2-4M13 7c0-2 2-2 2-4"/>',pan:'<circle cx="10" cy="13" r="7"/><path d="M17 13h5"/>',
+egg:'<path d="M12 3c3.5 0 6.5 5.5 6.5 10a6.5 6.5 0 0 1-13 0C5.5 8.5 8.5 3 12 3z"/>',fish:'<path d="M3 12c3-5 10-6 14-1l4-3v8l-4-3c-4 5-11 4-14-1z"/><circle cx="14" cy="11" r=".8"/>',
+pasta:'<path d="M4 12h16a8 8 0 0 1-16 0zM7 12c0-5 2-8 5-8M12 12c0-4 2-7 5-7"/>',leaf:'<path d="M5 19c0-9 6-14 15-14 0 9-5 15-14 15M5 19l7-7"/>',
+sand:'<path d="M3 10l9-6 9 6zM4 10v4h16v-4M4 14l1 5h14l1-5"/>',pot:'<path d="M4 9h16v7a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4zM2 9h20M9 5v2M15 5v2"/>',
+taco:'<path d="M3 17a9 9 0 0 1 18 0zM7 13l1-2M12 12V9.5M17 13l-1-2"/>',pizza:'<path d="M12 21L3 6a14 14 0 0 1 18 0z"/><circle cx="11" cy="10" r="1"/><circle cx="14" cy="13" r="1"/>',
+snow:'<path d="M12 2v20M4 7l16 10M20 7L4 17"/>',out:'<path d="M4 7h16l-1.5 13h-13zM9 7V5a3 3 0 0 1 6 0v2"/>',bolt:'<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>',
+trash:'<path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14"/>',play:'<path d="M7 4l13 8-13 8z"/>'};
+const ic=(n,c='ico')=>`<svg class="${c}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${P[n]||''}</svg>`;
+const bat=l=>`<svg class="bat" viewBox="0 0 40 20"><rect x="1" y="2" width="34" height="16" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><rect x="36" y="7" width="3" height="6" rx="1" fill="currentColor"/>${[0,1,2].map(i=>`<rect x="${4+i*10.3}" y="5" width="8.3" height="10" rx="2" fill="${i<=l?(l==0?'#c8553d':l==1?'#e0a526':'var(--a)'):'#0000'}" />`).join('')}</svg>`;
+
+/* ---------- recipes (2 servings) ---------- */
+// effort: 0 = barely any energy, 1 = some energy, 2 = feeling good
+const R0=[
+['Snack plate dinner',0,10,'leaf',['p:1 pc cucumber','p:200 g cherry tomatoes','d:200 g hummus','b:2 pc pita bread','d:100 g cheddar'],['Cut the cucumber and cheese into sticks.','Put everything on one big plate. Done, this counts as dinner.']],
+['Tuna & white bean salad',0,10,'leaf',['s:1 can tuna','s:1 can white beans','p:1 pc red onion','p:1 pc lemon','s:1 tbsp olive oil'],['Drain the tuna and beans.','Slice the onion very thin.','Mix everything with lemon juice, oil, salt and pepper.']],
+['Caprese ciabatta',0,10,'sand',['b:2 pc ciabatta rolls','d:1 pc mozzarella','p:2 pc tomatoes','p:1 bunch basil'],['Slice the mozzarella and tomatoes.','Fill the rolls with mozzarella, tomato and basil. Add salt and oil.']],
+['Smoked salmon bagels',0,8,'fish',['b:2 pc bagels','m:100 g smoked salmon','d:4 tbsp cream cheese','p:1 pc cucumber'],['Toast the bagels.','Spread cream cheese, add salmon and cucumber slices.']],
+['Upgraded instant ramen',0,8,'bowl',['s:2 pack instant noodles','d:2 pc eggs','f:150 g frozen peas','p:2 pc spring onions'],['Boil the noodles with the peas. {4}','Crack the eggs in for the last 2 minutes.','Top with sliced spring onions.']],
+['Jacket potatoes, beans & cheese',0,15,'pot',['p:2 pc large potatoes','s:1 can baked beans','d:80 g cheddar'],['Prick the potatoes and microwave them until soft. {10}','Heat the beans.','Split the potatoes, add beans and cheese.']],
+['Freezer fish & oven chips',0,25,'fish',['f:2 pc breaded fish fillets','f:400 g oven fries','f:150 g frozen peas'],['Put fish and fries on one tray in the oven at 220 °C. {22}','Cook the peas in the microwave.']],
+['Rotisserie chicken wraps',0,10,'sand',['m:300 g cooked chicken','b:4 pc wraps','p:1 pc lettuce','d:4 tbsp sour cream'],['Pull the chicken into pieces.','Fill the wraps with chicken, lettuce and sour cream.']],
+['Black bean quesadillas',1,15,'taco',['b:4 pc tortillas','s:1 can black beans','d:150 g cheddar','s:4 tbsp salsa'],['Drain and lightly mash the beans.','Fill tortillas with beans and cheese, fold.','Fry in a dry pan until golden. {3}','Flip and fry the other side. {3}']],
+['Egg fried rice',1,15,'pan',['s:250 g microwave rice','d:4 pc eggs','f:150 g frozen peas','s:2 tbsp soy sauce','p:2 pc spring onions'],['Scramble the eggs in a hot pan, take them out.','Fry the rice and peas. {5}','Add eggs, soy sauce and spring onions.']],
+['Pesto pasta with tomatoes',1,15,'pasta',['s:200 g pasta','s:4 tbsp pesto','p:200 g cherry tomatoes','d:30 g parmesan'],['Cook the pasta. {10}','Halve the tomatoes.','Mix pasta, pesto and tomatoes. Add parmesan.']],
+['Shakshuka',1,25,'egg',['s:1 can chopped tomatoes','d:4 pc eggs','p:1 pc bell pepper','p:1 pc onion','s:1 tsp cumin','b:1 pc bread'],['Fry the onion and pepper. {6}','Add tomatoes and cumin, simmer. {8}','Make 4 holes, crack in the eggs, cover. {6}','Serve with bread.']],
+['Garlic butter shrimp & rice',1,15,'fish',['f:300 g frozen shrimp','d:30 g butter','p:3 pc garlic cloves','s:250 g microwave rice','p:1 pc lemon'],['Melt butter, add sliced garlic. {1}','Add shrimp and cook until pink. {5}','Squeeze over lemon, serve with rice.']],
+['Teriyaki chicken stir-fry',1,20,'pan',['m:300 g chicken breast','f:400 g frozen stir-fry veg','s:3 tbsp teriyaki sauce','s:250 g microwave rice'],['Cut the chicken into strips and fry. {6}','Add the veg. {5}','Add the sauce, serve with rice.']],
+['Tomato soup & grilled cheese',1,15,'pot',['s:500 ml tomato soup','b:4 pc bread slices','d:100 g cheddar','d:20 g butter'],['Heat the soup.','Butter the bread outside, cheese inside.','Fry the sandwiches until golden on both sides. {6}']],
+['Spinach & feta omelette',1,10,'egg',['d:4 pc eggs','p:100 g spinach','d:80 g feta'],['Wilt the spinach in a pan. {2}','Pour in beaten eggs, add feta. {4}','Fold and serve.']],
+['Sausage & veg tray bake',1,35,'pan',['m:4 pc sausages','p:400 g baby potatoes','p:1 pc bell pepper','p:1 pc red onion','s:1 tbsp olive oil'],['Cut the veg, put everything on one tray with oil.','Bake at 200 °C. {30}']],
+['Gnocchi with tomato & mozzarella',1,15,'pasta',['d:500 g fresh gnocchi','s:400 g pasta sauce','d:1 pc mozzarella'],['Fry the gnocchi in a pan until golden. {6}','Add the sauce, top with torn mozzarella, cover until melted. {4}']],
+['Beef tacos',1,20,'taco',['m:300 g beef mince','s:1 pack taco seasoning','b:6 pc taco shells','p:1 pc lettuce','d:100 g cheddar','s:4 tbsp salsa'],['Brown the mince. {7}','Add seasoning and a splash of water. {3}','Fill the shells with beef, lettuce, cheese and salsa.']],
+['Sheet-pan salmon & broccoli',1,20,'fish',['m:2 pc salmon fillets','p:1 pc broccoli','p:1 pc lemon','s:1 tbsp olive oil'],['Put salmon and broccoli on a tray with oil, salt and lemon slices.','Bake at 200 °C. {15}']],
+['Baked feta pasta',1,35,'pasta',['d:200 g feta','p:400 g cherry tomatoes','s:200 g pasta','p:3 pc garlic cloves','s:2 tbsp olive oil'],['Put feta in a dish with tomatoes, garlic and oil.','Bake at 200 °C. {25}','Cook the pasta meanwhile and mix everything.']],
+['Red lentil curry',1,25,'pot',['s:150 g red lentils','s:400 ml coconut milk','s:2 tbsp curry paste','p:100 g spinach','s:250 g microwave rice'],['Fry the curry paste. {1}','Add lentils, coconut milk and 200 ml water, simmer. {18}','Stir in the spinach, serve with rice.']],
+['Stovetop mac & cheese',1,15,'pasta',['s:200 g macaroni','d:200 ml milk','d:150 g cheddar','d:20 g butter'],['Cook the macaroni. {9}','Drain, add butter, milk and cheese, stir until creamy.']],
+['Pasta carbonara',2,20,'pasta',['s:200 g spaghetti','m:100 g bacon','d:2 pc eggs','d:40 g parmesan'],['Cook the spaghetti. {10}','Fry the bacon crisp.','Whisk eggs and parmesan.','Off the heat, mix pasta, bacon and egg with a splash of pasta water.']],
+['Chili con carne',2,45,'pot',['m:400 g beef mince','s:1 can kidney beans','s:1 can chopped tomatoes','p:1 pc onion','s:2 tsp chili powder','s:250 g microwave rice'],['Fry the onion and mince. {8}','Add chili, tomatoes and beans, simmer. {30}','Serve with rice. Freezes well.']],
+['Spaghetti bolognese',2,45,'pasta',['m:400 g beef mince','s:1 can chopped tomatoes','p:1 pc onion','p:1 pc carrot','s:200 g spaghetti'],['Fry chopped onion and carrot. {5}','Add mince and brown it. {7}','Add tomatoes, simmer. {25}','Cook spaghetti and serve.']],
+['Lemon garlic chicken thighs',2,50,'pan',['m:4 pc chicken thighs','p:500 g potatoes','p:1 pc lemon','p:3 pc garlic cloves'],['Cut potatoes, put on a tray with chicken, garlic and lemon.','Roast at 200 °C. {45}']],
+['Homemade pizza',2,35,'pizza',['b:1 pc pizza dough','s:6 tbsp tomato sauce','d:1 pc mozzarella','p:1 pc bell pepper'],['Roll out the dough, add sauce, cheese and pepper.','Bake at 230 °C. {14}']],
+['Chicken coconut curry',2,40,'pot',['m:400 g chicken breast','s:400 ml coconut milk','s:2 tbsp curry paste','p:1 pc onion','s:250 g microwave rice'],['Fry onion and chicken. {8}','Add paste and coconut milk, simmer. {20}','Serve with rice.']],
+['Smash burgers',2,30,'sand',['m:400 g beef mince','b:2 pc burger buns','p:1 pc lettuce','p:1 pc tomato','d:2 pc cheese slices'],['Shape 4 balls and smash them flat in a hot pan. {3}','Flip, add cheese. {2}','Build the burgers.']]];
+const STAPLE=['olive oil','soy sauce','cumin','chili powder','curry paste'];
+const AISLE={p:'Fruit & veg',m:'Meat & fish',d:'Dairy & eggs',b:'Bread',f:'Frozen',s:'Pantry'};
+const AORDER=['p','b','m','d','f','s'];
+const SHELF={p:5,m:2,d:6};
+function parseIng(s){const[a,rest]=s.split(':');const m=rest.match(/^([\d.]+)\s+(g|ml|tbsp|tsp|pc|can|pack|bunch)\s+(.+)$/);return{a,q:+m[1],u:m[2],n:m[3]}}
+const BASE=R0.map((r,i)=>({id:'b'+i,n:r[0],e:r[1],t:r[2],c:r[3],i:r[4],s:r[5]}));
+
+/* ---------- state ---------- */
+const KEY='thmeal_v1';
+let S;try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+const fresh=()=>({setup:false,people:2,dinner:'18:30',low:[],theme:'sage',cur:'$',takeout:14,home:4,monday:true,plan:{},fridge:[],tossed:0,used:0,go:[],mine:[],list:{},extra:[],energy:{}});
+if(!S)S=fresh();
+const DEMO=!!window.BP_DEMO||location.search.includes('demo');
+let save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}if(window.SYNC)SYNC.changed()};
+const pill=()=>window.SYNC?`<span data-ths-pillslot>${SYNC.pillHTML()}</span>`:'';
+let tab='tonight',recFilter='all';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const allR=()=>BASE.concat(S.mine);
+const rec=id=>allR().find(r=>r.id===id);
+const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const today=()=>{const d=new Date();d.setHours(0,0,0,0);return d};
+const add=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const DN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const weekStart=d=>{const x=new Date(d);const k=S.monday?(x.getDay()+6)%7:x.getDay();return add(x,-k)};
+const EL=['Barely any','Some','Feeling good'];
+const ES=['No-cook or one tray','About 15 to 25 min','Proper cooking'];
+const toast=t=>{const e=document.createElement('div');e.className='toast';e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)};
+const isLow=d=>S.low.includes(d.getDay());
+
+/* ---------- logic ---------- */
+function recentIds(days=14){const t=today(),o=new Set();for(let i=-days;i<=7;i++){const p=S.plan[iso(add(t,i))];if(p&&p.r)o.add(p.r)}return o}
+function fridgeScore(r){return S.fridge.filter(f=>r.i.some(x=>parseIng(x).n.toLowerCase().includes(f.n.toLowerCase())||f.n.toLowerCase().includes(parseIng(x).n.toLowerCase()))).length}
+function reasonFor(r,low){const w=[];if(S.go.includes(r.id))w.push('A go-to');if(low&&r.e===0)w.push('Fits a low-energy day');const f=fridgeScore(r);if(f)w.push('Uses up what\'s in the fridge');if(!w.length)w.push(['Zero effort','Easy','Worth the effort'][r.e]);return w.join(' · ')}
+function choices(maxE,n=3,exclude=[]){
+ const rc=recentIds(10);
+ let pool=allR().filter(r=>r.e<=maxE&&!exclude.includes(r.id));
+ pool=pool.map(r=>({r,s:Math.random()+(S.go.includes(r.id)?1.2:0)+fridgeScore(r)*1.5-(rc.has(r.id)?2:0)+(r.e===maxE?.3:0)}));
+ pool.sort((a,b)=>b.s-a.s);return pool.slice(0,n).map(x=>x.r)}
+function fillWeek(start){
+ const out=[];const used=[];const t=today();
+ for(let i=0;i<7;i++){const d=add(start,i);if(d<t)continue;const k=iso(d);if(S.plan[k])continue;
+  const low=isLow(d);const r=choices(low?0:(d.getDay()%6===0?2:1),1,used)[0];if(!r)continue;used.push(r.id);out.push({k,d,r,why:reasonFor(r,low)})}
+ return out}
+function startBy(r){const[h,m]=S.dinner.split(':').map(Number);const d=new Date();d.setHours(h,m-(r?r.t:20)-5,0,0);return d}
+const hm=d=>d.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+function fmtQ(q,u){let v=Math.round(q*10)/10;if(['pc','can','pack','bunch'].includes(u))v=Math.ceil(q*2)/2;if(u==='g'&&q>=1000)return (Math.round(q/100)/10)+' kg';return (v%1? v.toFixed(1):v)+(u==='pc'?'':' '+u)}
+function shopping(nextWeek){
+ const s=nextWeek?add(weekStart(today()),7):today();const e=add(weekStart(today()),nextWeek?14:7);
+ const agg={};
+ for(let d=new Date(s);d<e;d=add(d,1)){const p=S.plan[iso(d)];if(!p||!p.r)continue;const r=rec(p.r);if(!r)continue;
+  r.i.forEach(x=>{const g=parseIng(x);if(STAPLE.includes(g.n))return;const key=g.n+'|'+g.u;(agg[key]=agg[key]||{n:g.n,u:g.u,a:g.a,q:0,for:[]});agg[key].q+=g.q*S.people/2;if(!agg[key].for.includes(r.n))agg[key].for.push(r.n)})}
+ const items=Object.values(agg);S.extra.forEach(x=>items.push({n:x.n,u:'',a:'x',q:0,for:[],ex:x.id}));return items}
+
+/* ---------- views ---------- */
+function vTonight(){
+ const t=today(),k=iso(t),p=S.plan[k],r=p&&p.r?rec(p.r):null;const en=S.energy[k];
+ const hour=new Date().getHours();const greet=hour<12?'Good morning':hour<18?'Good afternoon':'Good evening';
+ let h=`<div class="top"><div><div class="kick">${greet} · ${DN[t.getDay()]} ${t.getDate()} ${MN[t.getMonth()]}</div><h1>Tonight</h1></div><div class="row">${pill()}<button class="iconbtn" onclick="openSettings()">${ic('gear')}</button></div></div>`;
+ h+=`<div class="card"><div class="row between"><h3>How much energy do you have right now?</h3></div>
+ <div class="energy">${[0,1,2].map(l=>`<button class="en ${en===l?'on':''}" onclick="setEnergy(${l})">${bat(l)}${EL[l]}<small>${ES[l]}</small></button>`).join('')}</div></div>`;
+ const two=[];
+ if(p&&p.out){two.push(`<div class="card hero"><div class="kick" style="color:#fffc">TONIGHT</div><h2 style="font-size:26px;margin:4px 0 6px">Eating out or ordering in</h2><p class="mute" style="margin:0 0 14px">That's a plan too. Nothing gets wasted, the meal moved on.</p><button class="btn" onclick="clearDay('${k}')">Undo</button></div>`)}
+ else if(r){const sb=startBy(r),now=new Date(),mins=Math.round((sb-now)/60000);
+  const tooHard=en!==undefined&&en<r.e;
+  two.push(`<div class="card hero"><div class="row" style="gap:14px"><div class="tile" style="background:#ffffff26;color:#fff">${ic(r.c)}</div><div><div class="kick" style="color:#fffc">TONIGHT'S DINNER</div><h2 style="font-size:24px">${esc(r.n)}</h2></div></div>
+  <div class="startby">${ic('clock')}<div><div class="sm" style="opacity:.85">Start cooking by</div><b>${hm(sb)}</b></div><div style="margin-left:auto;text-align:right" class="sm">${p.done?'Done ✓':mins>0?`in ${mins>=60?Math.floor(mins/60)+' h ':''}${mins%60} min`:'Start now'}<br><span style="opacity:.8">${r.t} min · ${EL[r.e].toLowerCase()} energy</span></div></div>
+  ${tooHard?`<p class="sm" style="margin:-4px 0 12px;background:#ffffff26;padding:9px 12px;border-radius:12px">This needs more energy than you have. Swap it with an easier one below, no guilt.</p>`:''}
+  <div class="row" style="flex-wrap:wrap">${p.done?`<button class="btn" onclick="markDone('${k}',false)">${ic('check')} We ate it</button>`:`<button class="btn" onclick="cook('${r.id}','${k}')">${ic('play')} Cook step by step</button><button class="btn ghost" onclick="markDone('${k}',true)">${ic('check')} Ate it</button>`}<button class="btn ghost" onclick="plansChanged('${k}')">${ic('swap')} Plans changed</button></div></div>`)}
+ else{two.push(`<div class="card hero"><div class="kick" style="color:#fffc">NOTHING PLANNED YET</div><h2 style="font-size:26px;margin:4px 0 6px">Stop staring at the fridge.</h2><p class="mute" style="margin:0 0 14px">Pick your energy above and choose from just 3 dinners. Never 30.</p><button class="btn" onclick="decide()">${ic('dice')} Pick 3 dinners for me</button></div>`)}
+ // easier options
+ const maxE=en!==undefined?en:(r?Math.max(0,r.e-1):1);
+ const opts=choices(maxE,3,r?[r.id]:[]);
+ let o=`<div class="card"><div class="row between"><h3>${r?'Not feeling it? Easier options':'Only 3 choices for your energy'}</h3><button class="btn s" onclick="render()">${ic('dice')} New 3</button></div><div style="margin-top:6px">`;
+ o+=opts.map(x=>`<button class="opt" onclick="pickTonight('${x.id}')"><div class="tile">${ic(x.c)}</div><div class="grow"><b>${esc(x.n)}</b><span class="sm mute">${x.t} min · ${reasonFor(x,maxE===0)}</span></div>${ic('chev')}</button>`).join('');
+ o+='</div></div>';
+ // fridge
+ const fr=[...S.fridge].sort((a,b)=>left(a)-left(b)).slice(0,3);
+ let f=`<div class="card"><div class="row between"><h3>${ic('fridge')} Use it first</h3><button class="btn s" onclick="tab='list';render()">All</button></div>`;
+ f+=fr.length?fr.map(fRow).join(''):`<p class="sm mute" style="margin:8px 0 0">Fresh food lands here when you tick it off your shopping list, so it doesn't rot at the back of the fridge.</p>`;f+='</div>';
+ h+=`<div class="two"><div>${two.join('')}${o}</div><div>${f}${weekMini()}</div></div>`;
+ return h}
+function weekMini(){const s=weekStart(today());let n=0,c=0;for(let i=0;i<7;i++){const p=S.plan[iso(add(s,i))];if(p&&(p.r||p.out))n++;if(p&&p.done)c++}
+ return `<div class="card"><h3>This week</h3><p class="sm mute" style="margin:4px 0 10px">${n} of 7 dinners planned · ${c} eaten at home</p><div class="row" style="gap:6px">${[0,1,2,3,4,5,6].map(i=>{const d=add(s,i),p=S.plan[iso(d)];const col=p&&p.done?'var(--a)':p&&(p.r||p.out)?'var(--a3)':'var(--line)';return `<div style="flex:1;text-align:center"><div style="height:8px;border-radius:4px;background:${col}"></div><div class="sm mute" style="margin-top:4px">${DN[d.getDay()][0]}</div></div>`}).join('')}</div><button class="btn s" style="margin-top:12px" onclick="tab='week';render()">Open week</button></div>`}
+const left=f=>Math.round((new Date(f.added).getTime()+f.days*864e5-today().getTime())/864e5);
+function fRow(f){const l=left(f);return `<div class="fr ${l<=1?'hot':''}"><div class="grow" style="flex:1"><b>${esc(f.n)}</b><div class="sm ${l<=1?'':'mute'}" style="${l<=1?'color:#7a2c1c;font-weight:600':''}">${l<0?'Past its best, check it':l===0?'Use today':l===1?'Use by tomorrow':l+' days left'}</div></div><button class="btn s" style="background:var(--card)" onclick="fUse('${f.id}',1)">Used</button><button class="btn s" style="background:var(--card)" onclick="fUse('${f.id}',0)">Tossed</button></div>`}
+
+function vWeek(){
+ window._wk=window._wk||0;const s=add(weekStart(today()),7*window._wk);const t=today();
+ let h=`<div class="top"><div><div class="kick">${s.getDate()} ${MN[s.getMonth()]} – ${add(s,6).getDate()} ${MN[add(s,6).getMonth()]}</div><h1>${window._wk===0?'This week':window._wk===1?'Next week':'Week'}</h1></div><div class="row"><button class="iconbtn" onclick="_wk--;render()">${ic('back')}</button><button class="iconbtn" onclick="_wk++;render()">${ic('chev')}</button></div></div>`;
+ h+=`<div class="row" style="margin-bottom:14px;flex-wrap:wrap"><button class="btn pri" onclick="doFill()">${ic('dice')} Fill my week</button><button class="btn" onclick="openLow()">${ic('bolt')} Low-energy days</button></div>`;
+ h+='<div class="card">';
+ for(let i=0;i<7;i++){const d=add(s,i),k=iso(d),p=S.plan[k],r=p&&p.r?rec(p.r):null;
+  const past=d<t;
+  h+=`<div class="day ${k===iso(t)?'today':''}"><div class="dl"><b>${DN[d.getDay()]}</b><span>${d.getDate()} ${MN[d.getMonth()]}</span></div>`;
+  if(r)h+=`<button class="slot" onclick="dayMenu('${k}')"><div class="tile">${ic(r.c)}</div><div style="min-width:0;flex:1"><b style="display:block;font-size:15px">${esc(r.n)}</b><span class="sm mute">${r.t} min${isLow(d)?'<span class="lowtag">low-energy day</span>':''}</span></div>${p.done?`<span class="chip" title="eaten" style="padding:5px">${ic('check')}</span>`:''}</button>`;
+  else if(p&&p.out)h+=`<button class="slot" onclick="dayMenu('${k}')"><div class="tile" style="background:var(--sun2);color:#6b4b00">${ic('out')}</div><b style="font-size:15px">Eat out or order in</b></button>`;
+  else h+=`<button class="slot empty" onclick="dayMenu('${k}')">${past?'Nothing logged, that\'s okay':ic('plus')+' Add dinner'}${isLow(d)&&!past?'<span class="lowtag">low-energy day</span>':''}</button>`;
+  h+='</div>'}
+ h+='</div><p class="sm mute" style="text-align:center">Skipped a day? It just stays empty. No streaks, no red marks.</p>';
+ return h}
+
+function vList(){
+ window._nw=window._nw||false;const items=shopping(_nw);const lk=(_nw?'n':'c')+iso(weekStart(today()));S.list[lk]=S.list[lk]||[];const done=S.list[lk];
+ let h=`<div class="top"><div><div class="kick">${_nw?'Next week':'From today to the end of this week'}</div><h1>Shopping list</h1></div><button class="btn s" onclick="_nw=!_nw;render()">${_nw?'This week':'Next week'}</button></div>`;
+ h+=`<div class="card" style="padding:12px"><div class="row"><input id="addx" placeholder="Add anything: milk, dish soap…" onkeydown="if(event.key==='Enter')addExtra()"><button class="iconbtn" style="background:var(--a);color:#fff;flex:none" onclick="addExtra()">${ic('plus')}</button></div></div>`;
+ h+='<div class="two"><div>';
+ if(!items.length)h+=`<div class="card empty-note">Plan a few dinners and the list fills itself, sorted the way you walk the store.</div>`;
+ [...AORDER,'x'].forEach(a=>{const g=items.filter(x=>x.a===a);if(!g.length)return;g.sort((x,y)=>x.n.localeCompare(y.n));
+  h+=`<div class="card aisle"><div class="row between"><h3>${a==='x'?'Extras':AISLE[a]}</h3><span class="sm mute">${g.filter(x=>!done.includes(x.n)).length} left</span></div>`;
+  h+=g.map(x=>{const dn=done.includes(x.n);return `<button class="it ${dn?'done':''}" style="width:100%;text-align:left" onclick="tick('${lk}','${esc(x.n).replace(/'/g,"\\'")}','${x.a}')"><span class="ck">${dn?ic('check'):''}</span><span class="nm"><b>${esc(x.n)}</b>${x.ex?'':`<small>${fmtQ(x.q,x.u)} · ${esc(x.for.join(', '))}</small>`}</span>${x.ex?`<span onclick="event.stopPropagation();delExtra('${x.ex}')" class="mute">${ic('x')}</span>`:''}</button>`}).join('')+'</div>'});
+ h+=`</div><div><div class="card"><div class="row between"><h3>${ic('fridge')} Use it first</h3><button class="btn s" onclick="addFridge()">${ic('plus')} Add</button></div><p class="sm mute" style="margin:6px 0 0">Ticked fruit, veg, meat and dairy move here with a use-by countdown.</p>${[...S.fridge].sort((a,b)=>left(a)-left(b)).map(fRow).join('')}</div>
+ <div class="card"><h3>Staples you always keep</h3><p class="sm mute" style="margin:6px 0 10px">Left off the list: ${STAPLE.join(', ')}, salt and pepper.</p></div></div></div>`;
+ return h}
+
+function vRecipes(){
+ const F={all:'All',go:'♥ Go-tos',e0:'Barely any energy',e1:'Some energy',e2:'Feeling good',q:'15 min or less',mine:'Mine'};
+ let rs=allR();
+ if(recFilter==='go')rs=rs.filter(r=>S.go.includes(r.id));if(recFilter==='mine')rs=S.mine;
+ if(recFilter[0]==='e')rs=rs.filter(r=>r.e==+recFilter[1]);if(recFilter==='q')rs=rs.filter(r=>r.t<=15);
+ let h=`<div class="top"><div><div class="kick">${allR().length} in your kitchen</div><h1>Recipes</h1></div><button class="btn pri s" onclick="newRecipe()">${ic('plus')} Add</button></div>`;
+ h+=`<div class="filters">${Object.keys(F).map(k=>`<button class="chip ${recFilter===k?'on':''}" onclick="recFilter='${k}';render()">${F[k]}</button>`).join('')}</div>`;
+ h+=`<div class="grid">${rs.map(r=>`<button class="rc" onclick="showRecipe('${r.id}')"><div class="tile">${ic(r.c)}</div><div style="flex:1;min-width:0"><b style="display:block">${esc(r.n)}</b><span class="sm mute">${r.t} min · ${EL[r.e].toLowerCase()} energy</span></div>${S.go.includes(r.id)?`<span style="color:var(--a)">${ic('heart')}</span>`:''}</button>`).join('')||'<div class="empty-note">Nothing here yet.</div>'}</div>`;
+ return h}
+
+function vWins(){
+ const t=today(),ws=weekStart(t);const weeks=[];
+ for(let w=7;w>=0;w--){const s=add(ws,-7*w);let c=0,o=0;for(let i=0;i<7;i++){const p=S.plan[iso(add(s,i))];if(p&&p.done)c++;if(p&&p.out&&add(s,i)<=t)o++}weeks.push({s,c,o})}
+ const m0=new Date(t.getFullYear(),t.getMonth(),1);let mc=0;for(let d=new Date(m0);d<=t;d=add(d,1)){const p=S.plan[iso(d)];if(p&&p.done)mc++}
+ const saved=Math.round(mc*S.people*(S.takeout-S.home));
+ const tot=S.used+S.tossed,rate=tot?Math.round(S.used/tot*100):0;
+ let h=`<div class="top"><div><div class="kick">No streaks. Only wins.</div><h1>Your wins</h1></div></div>`;
+ h+=`<div class="stats"><div class="stat"><b>${mc}</b><span>home dinners this month</span></div><div class="stat"><b>${S.cur}${saved}</b><span>saved vs. takeout</span></div><div class="stat"><b>${tot?rate+'%':'–'}</b><span>fresh food used up</span></div></div>`;
+ const W=600,H=200,bw=44,gap=(W-40-8*bw)/7,mx=Math.max(7,...weeks.map(w=>w.c+w.o));
+ let svg=`<svg viewBox="0 0 ${W} ${H+28}" style="width:100%;height:auto;display:block">`;
+ [0,.5,1].forEach(f=>{const y=10+H-H*f*(mx/mx);svg+=`<line x1="30" x2="${W}" y1="${10+(H-10)*(1-f)}" y2="${10+(H-10)*(1-f)}" stroke="var(--line)"/><text x="0" y="${14+(H-10)*(1-f)}" font-size="12" fill="var(--mute)">${Math.round(mx*f)}</text>`});
+ weeks.forEach((w,i)=>{const x=40+i*(bw+gap);const hc=(H-10)*w.c/mx,ho=(H-10)*w.o/mx;
+  svg+=`<rect x="${x}" y="${H-hc}" width="${bw}" height="${hc}" rx="7" fill="var(--a)"/>`;
+  if(ho)svg+=`<rect x="${x}" y="${H-hc-ho-(hc?3:0)}" width="${bw}" height="${ho}" rx="7" fill="var(--sun)"/>`;
+  if(w.c)svg+=`<text x="${x+bw/2}" y="${H-hc+18}" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">${w.c}</text>`;
+  svg+=`<text x="${x+bw/2}" y="${H+22}" text-anchor="middle" font-size="12" fill="var(--mute)">${i===7?'This wk':w.s.getDate()+' '+MN[w.s.getMonth()]}</text>`});
+ svg+='</svg>';
+ h+=`<div class="card"><h3>Dinners per week</h3><div class="legend"><span><i style="background:var(--a)"></i>Eaten at home</span><span><i style="background:var(--sun)"></i>Ate out / ordered</span></div><div style="margin-top:12px">${svg}</div></div>`;
+ // energy chart
+ const ec=[0,0,0];Object.keys(S.energy).forEach(k=>{if(new Date(k)>=add(t,-30))ec[S.energy[k]]++});const et=ec[0]+ec[1]+ec[2];
+ h+=`<div class="card"><h3>Your energy at dinner time, last 30 days</h3><p class="sm mute" style="margin:4px 0 12px">Many low days? Mark those weekdays as low-energy in Week, and Fill my week gives them zero-effort dinners.</p>${[0,1,2].map(l=>`<div class="row" style="margin-top:8px"><span style="width:110px" class="sm">${EL[l]}</span><div style="flex:1;height:14px;background:var(--bg);border-radius:7px;overflow:hidden"><div style="height:100%;width:${et?ec[l]/et*100:0}%;background:${['var(--warn)','var(--sun)','var(--a)'][l]};border-radius:7px"></div></div><b class="sm" style="width:34px;text-align:right">${ec[l]}</b></div>`).join('')}</div>`;
+ return h}
+
+/* ---------- actions ---------- */
+function setEnergy(l){S.energy[iso(today())]=l;save();render()}
+function pickTonight(id){const k=iso(today());S.plan[k]={r:id};save();render();toast('Tonight is sorted')}
+function decide(){const k=iso(today()),en=S.energy[k];const opts=choices(en!==undefined?en:1,3);
+ sheet(`<h2>Pick one. That's it.</h2><p class="mute sm">Three dinners that fit your energy. Tap one and tonight is decided.</p>${opts.map(x=>`<button class="opt" onclick="pickTonight('${x.id}');closeSheet()"><div class="tile">${ic(x.c)}</div><div class="grow"><b>${esc(x.n)}</b><span class="sm mute">${x.t} min · ${reasonFor(x,en===0)}</span></div>${ic('chev')}</button>`).join('')}`)}
+function markDone(k,v){S.plan[k].done=v;save();render();if(v)toast('Nice. That\'s a win.')}
+function clearDay(k){delete S.plan[k];save();render()}
+function plansChanged(k){const r=rec(S.plan[k].r);
+ sheet(`<h2>Plans changed?</h2><p class="mute sm">${esc(r.n)} isn't lost. Pick what's happening instead.</p>
+ <button class="opt" onclick="moveTomorrow('${k}')"><div class="tile">${ic('swap')}</div><div class="grow"><b>Move it to tomorrow</b><span class="sm mute">The rest of the week shifts one day</span></div>${ic('chev')}</button>
+ <button class="opt" onclick="S.energy['${k}']=0;save();closeSheet();render()"><div class="tile">${ic('bolt')}</div><div class="grow"><b>Too tired: show zero-effort meals</b><span class="sm mute">Swap for something that takes no energy</span></div>${ic('chev')}</button>
+ <button class="opt" onclick="setOut('${k}')"><div class="tile">${ic('out')}</div><div class="grow"><b>We're eating out or ordering in</b><span class="sm mute">That's fine. The meal moves to tomorrow</span></div>${ic('chev')}</button>`)}
+function moveTomorrow(k,out){const d=new Date(k+'T00:00');let carry=S.plan[k];if(out)S.plan[k]={out:true};else delete S.plan[k];
+ for(let i=1;i<14&&carry;i++){const kk=iso(add(d,i));const nx=S.plan[kk];if(nx&&nx.out){continue}S.plan[kk]={r:carry.r};carry=nx&&nx.r?nx:null}
+ save();closeSheet();render();toast(out?'Enjoy. Tonight\'s meal moved to tomorrow':'Moved. The week bends, nothing breaks')}
+function setOut(k){moveTomorrow(k,true)}
+function dayMenu(k){const p=S.plan[k],d=new Date(k+'T00:00');const low=isLow(d);const opts=choices(low?0:1,3,p&&p.r?[p.r]:[]);
+ sheet(`<h2>${DN[d.getDay()]} ${d.getDate()} ${MN[d.getMonth()]}</h2>${p&&p.r?`<div class="row" style="margin:12px 0;flex-wrap:wrap"><button class="btn s" onclick="showRecipe('${p.r}')">Open recipe</button><button class="btn s" onclick="S.plan['${k}'].done=!S.plan['${k}'].done;save();closeSheet();render()">${ic('check')} ${p.done?'Not eaten':'We ate it'}</button><button class="btn s ghost" onclick="clearDay('${k}');closeSheet()">${ic('trash')} Clear</button></div>`:''}
+ <h3 style="margin-top:14px">${p&&p.r?'Swap for one of these':'Pick one of these'}</h3>${opts.map(x=>`<button class="opt" onclick="S.plan['${k}']={r:'${x.id}'};save();closeSheet();render()"><div class="tile">${ic(x.c)}</div><div class="grow"><b>${esc(x.n)}</b><span class="sm mute">${x.t} min · ${reasonFor(x,low)}</span></div>${ic('chev')}</button>`).join('')}
+ <button class="opt" onclick="S.plan['${k}']={out:true};save();closeSheet();render()"><div class="tile" style="background:var(--sun2);color:#6b4b00">${ic('out')}</div><div class="grow"><b>Eat out or order in</b><span class="sm mute">Planned on purpose, no guilt</span></div></button>
+ <button class="btn s ghost" style="margin-top:12px" onclick="tab='recipes';closeSheet();render()">Browse all recipes</button>`)}
+function doFill(){const s=add(weekStart(today()),7*(window._wk||0));const f=fillWeek(s);
+ if(!f.length){toast('Every day already has a plan');return}window._fill=f;
+ sheet(`<h2>Fill my week</h2><p class="sm mute">Low-energy days get zero-effort dinners. Nothing is saved until you keep it.</p>${f.map((x,i)=>`<div class="opt"><div style="width:62px" class="sm"><b>${DN[x.d.getDay()]}</b>${x.d.getDate()} ${MN[x.d.getMonth()]}</div><div class="tile">${ic(x.r.c)}</div><div class="grow"><b>${esc(x.r.n)}</b><span class="why">${x.why}</span></div><button onclick="_fill.splice(${i},1);this.closest('.opt').remove()" class="mute">${ic('x')}</button></div>`).join('')}
+ <div class="row" style="margin-top:16px"><button class="btn ghost" onclick="closeSheet();doFill()">${ic('dice')} Shuffle</button><button class="btn pri" style="flex:1" onclick="_fill.forEach(x=>S.plan[x.k]={r:x.r.id});save();closeSheet();render();toast('Week planned')">${ic('check')} Keep ${f.length}</button></div>`)}
+function openLow(){sheet(`<h2>Low-energy days</h2><p class="sm mute">Which days are you usually drained? Long work days, sports, late classes. These get zero-effort dinners when you fill your week.</p><div class="pick" style="margin-top:12px">${[1,2,3,4,5,6,0].map(d=>`<button class="${S.low.includes(d)?'on':''}" onclick="togLow(${d},this)">${DN[d]}</button>`).join('')}</div><button class="btn pri big" style="margin-top:18px" onclick="closeSheet();render()">Done</button>`)}
+function togLow(d,el){S.low=S.low.includes(d)?S.low.filter(x=>x!==d):[...S.low,d];el.classList.toggle('on');save()}
+function tick(lk,n,a){const l=S.list[lk];const i=l.indexOf(n);if(i>=0){l.splice(i,1)}else{l.push(n);if(SHELF[a]&&!S.fridge.some(f=>f.n===n)){S.fridge.push({id:'f'+Date.now(),n,added:iso(today()),days:SHELF[a]})}}save();render()}
+function addExtra(){const v=$('#addx').value.trim();if(!v)return;S.extra.push({id:'x'+Date.now(),n:v});save();render();$('#addx').focus()}
+function delExtra(id){S.extra=S.extra.filter(x=>x.id!==id);save();render()}
+function fUse(id,u){S.fridge=S.fridge.filter(f=>f.id!==id);u?S.used++:S.tossed++;save();render()}
+function addFridge(){sheet(`<h2>Add to fridge</h2><label class="f">What is it?</label><input id="fn" placeholder="e.g. Chicken, spinach"><label class="f">Use within</label><div class="pick" id="fd">${[1,2,3,5,7].map(d=>`<button class="${d===3?'on':''}" onclick="[...this.parentNode.children].forEach(b=>b.classList.remove('on'));this.classList.add('on')">${d} day${d>1?'s':''}</button>`).join('')}</div><button class="btn pri big" style="margin-top:18px" onclick="const n=$('#fn').value.trim();if(!n)return;S.fridge.push({id:'f'+Date.now(),n,added:iso(today()),days:parseInt($('#fd .on').textContent)});save();closeSheet();render()">Add</button>`)}
+function showRecipe(id){const r=rec(id);window._srv=S.people;
+ const body=()=>`<div class="row" style="gap:14px"><div class="tile">${ic(r.c)}</div><div style="flex:1"><h2>${esc(r.n)}</h2><span class="sm mute">${r.t} min · ${EL[r.e].toLowerCase()} energy</span></div></div>
+ <div class="row" style="margin:14px 0;flex-wrap:wrap"><button class="btn pri" onclick="closeSheet();cook('${r.id}')">${ic('play')} Cook</button><button class="btn" onclick="togGo('${r.id}')">${ic('heart')} ${S.go.includes(r.id)?'Go-to ✓':'Make it a go-to'}</button>${r.id[0]==='m'?`<button class="btn ghost" onclick="delRecipe('${r.id}')">${ic('trash')}</button>`:''}</div>
+ <div class="row between"><h3>Ingredients</h3><div class="row"><button class="iconbtn" style="width:34px;height:34px" onclick="_srv=Math.max(1,_srv-1);document.getElementById('rb').innerHTML=ingHtml()">–</button><b class="sm">${'<span id="sv"></span>'}</b><button class="iconbtn" style="width:34px;height:34px" onclick="_srv++;document.getElementById('rb').innerHTML=ingHtml()">+</button></div></div><div id="rb"></div>
+ <h3 style="margin-top:16px">Steps</h3><ol style="padding-left:20px;margin:8px 0">${r.s.map(x=>`<li style="margin-bottom:6px">${esc(x.replace(/\s*\{\d+\}/,''))}</li>`).join('')}</ol>`;
+ window.ingHtml=()=>`<p class="sm mute" style="margin:6px 0">${_srv} serving${_srv>1?'s':''}</p>`+r.i.map(x=>{const g=parseIng(x);return `<div class="it" style="padding:8px 0"><span class="nm">${fmtQ(g.q*_srv/2,g.u)} ${esc(g.n)}</span></div>`}).join('');
+ sheet(body());document.getElementById('rb').innerHTML=ingHtml()}
+function togGo(id){S.go=S.go.includes(id)?S.go.filter(x=>x!==id):[...S.go,id];save();closeSheet();render();showRecipe(id)}
+function delRecipe(id){S.mine=S.mine.filter(r=>r.id!==id);save();closeSheet();render()}
+function newRecipe(){sheet(`<h2>Add your recipe</h2><label class="f">Name</label><input id="rn"><label class="f">Energy it needs</label><div class="pick" id="re">${EL.map((e,i)=>`<button class="${i===1?'on':''}" data-v="${i}" onclick="[...this.parentNode.children].forEach(b=>b.classList.remove('on'));this.classList.add('on')">${e}</button>`).join('')}</div><label class="f">Minutes</label><input id="rt" type="number" value="20"><label class="f">Ingredients for 2, one per line</label><textarea id="ri" rows="4" placeholder="200 g pasta&#10;1 pc onion&#10;1 can tomatoes"></textarea><label class="f">Steps, one per line</label><textarea id="rs" rows="4"></textarea><button class="btn pri big" style="margin-top:18px" onclick="saveRecipe()">Save</button>`)}
+function saveRecipe(){const n=$('#rn').value.trim();if(!n)return toast('Give it a name');
+ const ing=$('#ri').value.split('\n').map(x=>x.trim()).filter(Boolean).map(x=>{const m=x.match(/^([\d.]+)\s*(g|ml|tbsp|tsp|pc|can|pack|bunch)?\s+(.+)$/);return m?`s:${m[1]} ${m[2]||'pc'} ${m[3]}`:`s:1 pc ${x}`});
+ S.mine.push({id:'m'+Date.now(),n,e:+$('#re .on').dataset.v,t:+$('#rt').value||20,c:'bowl',i:ing,s:$('#rs').value.split('\n').map(x=>x.trim()).filter(Boolean)});save();closeSheet();recFilter='mine';tab='recipes';render();toast('Recipe saved')}
+/* cook mode */
+let CK=null,wl=null,tmr=null;
+async function cook(id,k){CK={r:rec(id),i:0,k};try{wl=await navigator.wakeLock.request('screen')}catch(e){}drawCook()}
+function drawCook(){let el=$('.cook');if(!el){el=document.createElement('div');el.className='cook';document.body.appendChild(el)}
+ const r=CK.r,s=r.s[CK.i],m=s.match(/\{(\d+)\}/),txt=s.replace(/\s*\{\d+\}/,'');
+ el.innerHTML=`<div class="row between" style="max-width:620px;margin:0 auto;width:100%"><button class="iconbtn" onclick="endCook()">${ic('x')}</button><div style="flex:1;margin-left:12px"><div class="sm mute">Step ${CK.i+1} of ${r.s.length} · screen stays on</div><b>${esc(r.n)}</b></div></div>
+ <div style="max-width:620px;margin:0 auto;width:100%"><div class="prog">${r.s.map((_,i)=>`<i class="${i<=CK.i?'on':''}"></i>`).join('')}</div></div>
+ <div class="stepx">${tmr?`<div class="timer" style="margin-bottom:22px"><span>${ic('clock')} <span id="tl"></span></span><button onclick="clearInterval(tmr.h);tmr=null;drawCook()">${ic('x')}</button></div>`:''}<p>${esc(txt)}</p>${m?`<button class="btn" onclick="startT(${m[1]})">${ic('clock')} Start ${m[1]} min timer</button>`:''}</div>
+ <div class="row" style="max-width:620px;margin:0 auto;width:100%"><button class="btn ghost" ${CK.i?'':'disabled style="opacity:.4"'} onclick="CK.i--;drawCook()">${ic('back')} Back</button><button class="btn pri" style="flex:1" onclick="${CK.i<r.s.length-1?'CK.i++;drawCook()':'finishCook()'}">${CK.i<r.s.length-1?'Next':'Done, let\'s eat'} ${ic('chev')}</button></div>`;
+ if(tmr)tickT()}
+function startT(m){if(tmr)clearInterval(tmr.h);tmr={end:Date.now()+m*6e4};tmr.h=setInterval(tickT,1000);drawCook()}
+function tickT(){const el=$('#tl');if(!el||!tmr)return;const s=Math.max(0,Math.round((tmr.end-Date.now())/1000));el.textContent=s?`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')} left`:'Time is up!';if(!s){clearInterval(tmr.h);try{navigator.vibrate&&navigator.vibrate([300,150,300])}catch(e){}}}
+function endCook(){if(tmr){clearInterval(tmr.h);tmr=null}try{wl&&wl.release()}catch(e){}$('.cook')&&$('.cook').remove();CK=null}
+function finishCook(){const k=CK.k||iso(today());const id=CK.r.id;endCook();S.plan[k]={r:id,done:true};save();render();toast('Cooked! That\'s a win.')}
+/* sheets */
+function sheet(h){closeSheet();const o=document.createElement('div');o.className='ov';o.onclick=e=>{if(e.target===o)closeSheet()};o.innerHTML=`<div class="sheet"><button class="iconbtn x" onclick="closeSheet()">${ic('x')}</button>${h}</div>`;document.body.appendChild(o)}
+function closeSheet(){document.querySelectorAll('.ov').forEach(o=>o.remove())}
+const THEMES={sage:'#3f7d5c',blush:'#c0557a',lavender:'#6f5bb5',ocean:'#2f6f8f',terracotta:'#b4573a'};
+function setupFields(){return `<label class="f">How many people eat dinner? *</label><div class="pick" id="pp">${[1,2,3,4,5,6].map(n=>`<button class="${S.people===n?'on':''}" onclick="S.people=${n};[...this.parentNode.children].forEach(b=>b.classList.remove('on'));this.classList.add('on')">${n}</button>`).join('')}</div>
+ <label class="f">Usual dinner time *</label><input type="time" id="dt" value="${S.dinner}" onchange="S.dinner=this.value">
+ <label class="f">Low-energy days (optional)</label><div class="pick">${[1,2,3,4,5,6,0].map(d=>`<button class="${S.low.includes(d)?'on':''}" onclick="togLow(${d},this)">${DN[d]}</button>`).join('')}</div>
+ <label class="f">Colour</label><div class="row">${Object.keys(THEMES).map(t=>`<button class="sw ${S.theme===t?'on':''}" style="background:${THEMES[t]}" onclick="S.theme='${t}';document.documentElement.dataset.t=t;[...this.parentNode.children].forEach(b=>b.classList.remove('on'));this.classList.add('on')"></button>`).join('')}</div>`}
+function openSettings(){sheet(`<h2>Settings</h2>${setupFields()}
+ <label class="f">Week starts on</label><div class="pick"><button class="${S.monday?'on':''}" onclick="S.monday=true;save();openSettings()">Monday</button><button class="${!S.monday?'on':''}" onclick="S.monday=false;save();openSettings()">Sunday</button></div>
+ <label class="f">For your savings chart</label><div class="row"><input id="cu" value="${esc(S.cur)}" style="width:70px" onchange="S.cur=this.value"><input type="number" value="${S.takeout}" onchange="S.takeout=+this.value" title="Takeout per person"><input type="number" value="${S.home}" onchange="S.home=+this.value" title="Home meal per person"></div><p class="sm mute">Currency · takeout per person · home meal per person</p>
+ ${window.SYNC?`<label class="f">Sync between your devices</label><div data-ths-section>${SYNC.sectionHTML()}</div>`:''}
+ <div class="row" style="margin-top:16px;flex-wrap:wrap"><button class="btn s" onclick="backup()">Save a backup</button><label class="btn s">Restore backup<input type="file" accept=".json" hidden onchange="restore(this)"></label><button class="btn s ghost" onclick="if(confirm('Delete everything and start over?')){S=fresh();save();closeSheet();render()}">Start over</button></div>
+ <button class="btn pri big" style="margin-top:18px" onclick="save();closeSheet();render()">Done</button>`)}
+function backup(){const b=new Blob([JSON.stringify(S)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='meal-planner-backup-'+iso(today())+'.json';a.click()}
+function restore(inp){const f=inp.files[0];if(!f)return;f.text().then(t=>{try{S=Object.assign(fresh(),JSON.parse(t));save();closeSheet();render();toast('Backup restored')}catch(e){toast('That file is not a backup')}})}
+/* render */
+const TABS=[['tonight','Tonight','tonight'],['week','Week','week'],['list','List','list'],['recipes','Recipes','book'],['wins','Wins','wins']];
+function render(){
+ document.documentElement.dataset.t=S.theme;
+ if(!S.setup){$('#root').innerHTML=`<div class="onb"><h1 style="font-size:36px;line-height:1.1">Dinner, decided<br>in 10 seconds.</h1><p class="mute">A meal planner that asks how much energy you have, then gives you 3 choices, not 30. Set up takes 20 seconds.</p><div class="card" style="margin-top:20px">${setupFields()}<button class="btn pri big" style="margin-top:20px" onclick="S.setup=true;save();render()">Let's eat</button>${window.SYNC?`<button class="btn ghost big" style="margin-top:10px" onclick="SYNC.openJoin()">Already use it on another device?</button>`:''}</div></div>`;return}
+ const V={tonight:vTonight,week:vWeek,list:vList,recipes:vRecipes,wins:vWins}[tab]();
+ $('#root').innerHTML=`<div class="app"><nav class="side"><div class="brand"><span class="tile" style="width:34px;height:34px;border-radius:10px">${ic('bowl')}</span>Meal Planner</div>${TABS.map(t=>`<button class="${tab===t[0]?'on':''}" onclick="tab='${t[0]}';render()">${ic(t[2])}${t[1]}</button>`).join('')}<div style="flex:1"></div>${pill()}<button onclick="openSettings()">${ic('gear')}Settings</button></nav><main>${DEMO?`<div class="card" style="background:var(--a2);border:0;padding:12px 16px"><div class="row between" style="flex-wrap:wrap"><span class="sm"><b>Free demo</b> · changes aren't saved</span><a class="btn pri s" style="text-decoration:none" href="https://www.etsy.com/shop/TrueHavenStudios" target="_blank">Get the full app</a></div></div>`:''}${V}</main></div>
+ <nav class="bot">${TABS.map(t=>`<button class="${tab===t[0]?'on':''}" onclick="tab='${t[0]}';render();scrollTo(0,0)">${ic(t[2])}${t[1]}</button>`).join('')}</nav>`}
+/* demo data for screenshots: ?demo */
+if(DEMO){S=fresh();S.setup=true;S.people=2;S.low=[3];S.go=['b9','b19','b0','b11'];const t=today(),ws=weekStart(t);
+ const ids=['b24','b19','b9','b8','b16','b27','b0'];ids.forEach((id,i)=>{const d=add(ws,i);S.plan[iso(d)]={r:id,done:d<t}});S.plan[iso(add(ws,5))]={out:true};
+ for(let w=1;w<8;w++)for(let i=0;i<7;i++){const k=iso(add(ws,-7*w+i));const v=(w*7+i)%5;S.plan[k]=v===4?{out:true}:v===3?{}:{r:'b'+((w*3+i)%30),done:true}}
+ S.fridge=[{id:'f1',n:'salmon fillets',added:iso(add(t,-1)),days:2},{id:'f2',n:'spinach',added:iso(add(t,-3)),days:5},{id:'f3',n:'cherry tomatoes',added:iso(add(t,-1)),days:5}];
+ S.used=14;S.tossed=3;for(let i=0;i<30;i++)S.energy[iso(add(t,-i))]=[1,0,2,1,0,1,2][i%7];S.energy[iso(t)]=1;
+ S.list['n'+iso(ws)]=['broccoli','lemon','bagels'];['b19','b5','b13','b10','b11','b6'].forEach((id,i)=>{S.plan[iso(add(ws,7+i))]={r:id}});S.extra=[{id:'x1',n:'Dish soap'}];
+ const q=new URLSearchParams(location.search);tab=q.get('tab')||'tonight';if(q.get('nw')){window._nw=true;window._wk=1}if(q.get('theme'))S.theme=q.get('theme');save=()=>{}}
+render();
+let _lk=null;
+if(window.THSync){window.SYNC=THSync.create({appId:'meal',appName:'Meal Planner',storageKey:KEY,url:window.BP_SYNC_URL||'',demo:DEMO,
+ getState:()=>{let x=null;try{x=localStorage.getItem(KEY)}catch(e){}return x||JSON.stringify(S)},
+ applyState:j=>{S=Object.assign(fresh(),JSON.parse(j));try{localStorage.setItem(KEY,j)}catch(e){}closeSheet();render()},
+ validate:j=>{const d=JSON.parse(j);if(typeof d!=='object'||!('plan' in d))throw new Error('not meal data')},
+ describe:j=>{const d=JSON.parse(j);return Object.keys(d.plan||{}).length+' planned days · '+((d.mine||[]).length)+' own recipes'},
+ hasData:()=>!!(S.setup&&Object.keys(S.plan).length),toast:m=>toast(m),
+ onStatus:()=>{const f=()=>{const l=SYNC.linked;if(_lk!==null&&l!==_lk)render();_lk=l};f();setTimeout(f,700)},
+ cls:{pri:'btn pri',ghost:'btn ghost',danger:'btn ghost'}});render();setTimeout(()=>SYNC.start(),0)}
+if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
