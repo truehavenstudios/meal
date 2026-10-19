@@ -4,9 +4,9 @@
  "start_url": "./index.html",
  "scope": "./",
  "display": "standalone",
- "background_color": "#f6f3ec",
- "theme_color": "#f6f3ec",
- "description": "Dinner, decided by your energy.",
+ "background_color": "#F8F4F0",
+ "theme_color": "#F8F4F0",
+ "description": "Dinner by your energy, week plan, shopping list, fridge and freezer.",
  "icons": [
   {
    "src": "icon-192.png",
