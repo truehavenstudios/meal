@@ -1685,7 +1685,7 @@ const TRIP = [["Onion", 4, "pc", "p"], ["Eggs", 12, "pc", "d"], ["Microwave rice
   ["Chopped tomatoes", 2, "can", "s"], ["Carrot", 6, "pc", "p"], ["Cucumber", 1, "pc", "p"], ["Bread slices", 1, "pack", "b"], ["Beef mince", 500, "g", "m"], ["Tortillas", 8, "pc", "b"], ["Coffee", 1, "pack", "x"]];
 window.BP_SAMPLE = function () {
   const s = blank(), t = today(), ws = E.weekStart(t, 1);
-  s.setup = true; s.sample = true;
+  s.setup = true; s.sample = true; s.created = E.addDays(t, -70);
   Object.assign(s.settings, { name: "Sam", groc: 140, takeout: 16, themes: { 3: "low", 5: "out", 1: "veg" } });
   s.people = [{ id: "p1", name: "Sam", kid: false, no: ["mushroom"] }, { id: "p2", name: "Alex", kid: false, no: [] }, { id: "p3", name: "Mia", kid: true, no: ["salmon"] }];
   s.go = ["b9", "b19", "b0", "b11", "b24"];
@@ -1718,7 +1718,7 @@ function blank() {
   return {
     v: 1, setup: false, created: today(),
     settings: { name: "", currency: "USD", theme: "Sage", dark: "auto", weekStart: 1, dinner: "18:30", slots: ["dinner"], groc: 0, takeout: 15, home: 4, simple: true, themes: {}, hideStart: false, diet: "all" },
-    people: [], plan: {}, energy: {}, pantry: [], trips: [], freezer: [], list: {}, extra: [], spend: [], go: [], mine: [], hidden: [], used: 0, tossed: 0, lastBackup: ""
+    people: [], plan: {}, energy: {}, pantry: [], trips: [], carry: {}, carryDone: {}, savedGroc: 0, freezer: [], list: {}, extra: [], spend: [], go: [], mine: [], hidden: [], used: 0, tossed: 0, lastBackup: ""
   };
 }
 let loadProblem = "";
@@ -1815,7 +1815,7 @@ const tile = (h, v, s = "", sc = "") => `<div class="tile"><div class="h">${h}</
 const plural = (n, w, p) => n + " " + (n === 1 ? w : (p || w + "s"));
 const hm = d => d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 const NAV = [
-  ["Every day", [["home", "Tonight", "fork"], ["week", "Week", "week"], ["list", "Shopping list", "cart"], ["recipes", "Recipes", "book"]]],
+  ["Every day", [["home", "Home", "fork"], ["week", "Week", "week"], ["list", "Shopping list", "cart"], ["recipes", "Recipes", "book"]]],
   ["Plan ahead", [["month", "Month", "cal"], ["kitchen", "Kitchen", "fridge"], ["household", "Household", "users"]]],
   ["Look back", [["insights", "Insights", "worth"], ["settings", "Settings", "gear"]]]
 ];
@@ -1841,7 +1841,7 @@ function shell(content) {
     <button class="btn pri addbtn" data-act="decide">${ic("dice")}Decide tonight for me</button>${nav}
     <div style="flex:1"></div><div class="tiny faint" style="padding:12px">${DEMO ? "Demo" : SYNC.linked ? "Synced between your devices" : "Saved on this device"} · v${esc(window.BP_VERSION || "")}</div></aside>
     <main class="main" id="main">${content}</main></div>
-    <nav class="tabbar">${[["home", "Tonight", "fork"], ["week", "Week", "week"]].map(([id, n, i]) => `<a href="#/${id}" class="${r === id ? "on" : ""}">${ic(i)}${n}</a>`).join("")}
+    <nav class="tabbar">${[["home", "Home", "fork"], ["week", "Week", "week"]].map(([id, n, i]) => `<a href="#/${id}" class="${r === id ? "on" : ""}">${ic(i)}${n}</a>`).join("")}
     <button class="fab" data-act="quickAdd" aria-label="Add">${ic("plus")}</button>
     <a href="#/list" class="${r === "list" ? "on" : ""}">${ic("cart")}List</a><button data-act="moreNav" class="${["home", "week", "list"].includes(r) ? "" : "on"}" style="${["home", "week", "list"].includes(r) ? "" : "color:var(--a)"}">${ic("more")}More</button></nav>`;
 }
@@ -1880,7 +1880,7 @@ function vHome() {
   const choices = card(r ? "Not feeling it? Easier options" : `3 dinners for ${en !== undefined ? ENERGY[en][0].toLowerCase() + " energy" : "tonight"}`, optList, { right: `<button class="lnk" data-act="reroll">${ic("dice", "i16")} New 3</button>`, tight: true, b: true });
   const toggle = `<div class="seg simpletog"><button class="${st.simple ? "on" : ""}" data-act="simple" data-v="1">Simple view</button><button class="${st.simple ? "" : "on"}" data-act="simple" data-v="0">Show everything</button></div>`;
   const top = head(`${dlong(t)} · ${t.slice(0, 4)}`, "Tonight", toggle, `${greet()}${st.name ? ", " + esc(st.name) : ""}. One decision, then you're done.`) + startList();
-  if (st.simple) return top + `<div style="margin-bottom:18px">${nextStep()}</div><div class="grid g12 start">${hero}<div class="col">${energy}${choices}</div></div>
+  if (st.simple) return top + `<div style="margin-bottom:18px">${nextStep()}</div>${st.groc ? `<div style="margin-bottom:18px">${budgetCard(true)}</div>` : ""}<div class="grid g12 start">${hero}<div class="col">${energy}${choices}</div></div>
     <p class="tiny faint" style="text-align:center;margin-top:18px">Want your week, fridge and numbers here too? <button class="link" data-act="simple" data-v="0">Show everything</button></p>`;
   const ws = E.weekStart(t, st.weekStart); let planned = 0;
   for (let i = 0; i < 7; i++) { const q = MP.slot(S, E.addDays(ws, i)); if (q && (q.r || q.out || q.frz)) planned++; }
@@ -1912,7 +1912,7 @@ function nextStep() {
 function startList() {
   if (DEMO || S.settings.hideStart || S.sample) return "";
   const steps = [["Add who's eating", S.people.length > 0, `data-go="household"`], ["Plan your first week", Object.keys(S.plan).length >= 3, `data-act="fillWeek"`],
-    ["Tick off your shopping list", Object.keys(S.list).some(k => S.list[k].length), `data-go="list"`], ["Mark a few go-to meals", S.go.length >= 3, `data-go="recipes"`]];
+    ["Tick off your shopping list", (S.trips || []).length || Object.keys(S.list).some(k => S.list[k].length), `data-go="list"`], ["Mark a few go-to meals", S.go.length >= 3, `data-go="recipes"`]];
   const done = steps.filter(s => s[1]).length; if (done === steps.length) return "";
   return `<section class="card" style="margin-bottom:18px"><div class="band soft"><span class="t">Getting started · ${done} of ${steps.length}</span><span class="r"><button class="lnk" data-act="hideStart">Hide</button></span></div><div class="body tight"><div class="list">
     ${steps.map(([l, ok, a]) => `<div class="item ${ok ? "" : "click"}" ${ok ? "" : a}><span class="emo" style="width:30px;height:30px;${ok ? "background:var(--okbg);color:var(--ok)" : ""}">${ok ? ic("check", "i16") : "○"}</span><span class="grow ${ok ? "faint" : "nm"}" style="${ok ? "text-decoration:line-through" : ""}">${l}</span>${ok ? "" : ic("right")}</div>`).join("")}</div></div></section>`;
@@ -1948,21 +1948,22 @@ function vWeek() {
 }
 
 // ------------------------------------------------------------ shopping list
+const tkey = x => x.n.toLowerCase() + (x.ex || !x.u ? "" : "|" + x.u), isDone = (done, x) => done.includes(tkey(x)) || done.includes(x.n.toLowerCase());
 function listRange() { const t = today(), ws = E.weekStart(t, S.settings.weekStart); return VS.nw ? [E.addDays(ws, 7), E.addDays(ws, 13), E.addDays(ws, 7)] : [t, E.addDays(ws, 6), ws]; }
 function vList() {
   const [from, to, key] = listRange(), all = MP.shopping(S, from, to), items = all.filter(x => x.home !== "all"), athome = all.filter(x => x.home === "all"), done = S.list[key] || [];
   S.extra.forEach(x => items.push({ n: x.n, u: "", a: "x", q: 0, for: [], ex: x.id }));
-  const left = items.filter(x => !done.includes(x.n.toLowerCase())).length;
+  const left = items.filter(x => !isDone(done, x)).length;
   const seg = `<div class="seg"><button class="${VS.nw ? "" : "on"}" data-act="nw" data-v="0">This week</button><button class="${VS.nw ? "on" : ""}" data-act="nw" data-v="1">Next week</button></div>`;
   const top = head(VS.nw ? `Next week · ${dshort(from)} – ${dshort(to)}` : `Today until ${DOWL[E.dow(to)]}`, "Shopping list", `${seg}<button class="btn ${VS.store ? "pri" : ""}" data-act="store">${ic("cart")}${VS.store ? "Done shopping" : "I'm at the store"}</button>`,
     `${plural(left, "thing")} to get · amounts for ${plural(MP.portions(S), "portion")} · sorted the way you walk the store`);
   const add = `<section class="card"><div class="body row" style="gap:8px"><input class="inp" id="addx" placeholder="Add anything: milk, dish soap…" autocomplete="off"><button class="btn pri" data-act="addExtra">${ic("plus")}Add</button></div></section>`;
   const groups = AORDER.map(a => {
-    let g = items.filter(x => x.a === a); if (VS.store) g = g.filter(x => !done.includes(x.n.toLowerCase()));
+    let g = items.filter(x => x.a === a); if (VS.store) g = g.filter(x => !isDone(done, x));
     if (!g.length) return ""; g.sort((x, y) => x.n.localeCompare(y.n));
-    return card(AISLE[a], `<div class="list">${g.map(x => { const dn = done.includes(x.n.toLowerCase()); return `<div class="item click shop ${dn ? "paid" : ""}" data-act="tick" data-n="${esc(x.n.toLowerCase())}" data-a="${x.a}"><button class="tick ${dn ? "on" : ""}" aria-label="Got it">${ic("check")}</button><div class="grow"><div class="nm">${esc(x.n[0].toUpperCase() + x.n.slice(1))}${x.q ? ` <span class="muted">· ${fmtQ(x.q, x.u)}</span>` : ""}${x.home === "some" ? ` <span class="tag">some at home</span>` : x.had ? ` <span class="tag">${fmtQ(x.had, x.u)} at home</span>` : ""}</div>${x.for.length ? `<div class="tiny muted ell">${esc(x.for.join(", "))}</div>` : ""}</div>${x.ex ? `<button class="iconbtn" data-act="delExtra" data-id="${x.ex}" aria-label="Remove">${ic("x")}</button>` : ""}</div>`; }).join("")}</div>`, { right: `<span class="tiny">${g.filter(x => !done.includes(x.n.toLowerCase())).length} left</span>`, tight: true, b: a === "m" || a === "f" || a === "x" });
+    return card(AISLE[a], `<div class="list">${g.map(x => { const dn = isDone(done, x); return `<div class="item click shop ${dn ? "paid" : ""}" data-act="tick" data-n="${esc(tkey(x))}" data-a="${x.a}"><button class="tick ${dn ? "on" : ""}" aria-label="Got it">${ic("check")}</button><div class="grow"><div class="nm">${esc(x.n[0].toUpperCase() + x.n.slice(1))}${x.q ? ` <span class="muted">· ${fmtQ(x.q, x.u)}</span>` : ""}${x.home === "some" ? ` <span class="tag">some at home</span>` : x.had ? ` <span class="tag">${fmtQ(x.had, x.u)} at home</span>` : ""}</div>${x.for.length ? `<div class="tiny muted ell">${esc(x.for.join(", "))}</div>` : ""}</div>${x.ex ? `<button class="iconbtn" data-act="delExtra" data-id="${x.ex}" aria-label="Remove">${ic("x")}</button>` : ""}</div>`; }).join("")}</div>`, { right: `<span class="tiny">${g.filter(x => !isDone(done, x)).length} left</span>`, tight: true, b: a === "m" || a === "f" || a === "x" });
   }).filter(Boolean);
-  const homeC = athome.length ? card(`Already at home · ${athome.length}`, `<div class="list">${athome.map(x => `<div class="item"><span class="emo" style="width:30px;height:30px;background:var(--okbg);color:var(--ok)">${ic("check", "i16")}</span><div class="grow"><div class="nm">${esc(capF(x.n))}</div><div class="tiny muted">need ${fmtQ(x.q, x.u)} · you have ${fmtQ(x.had, x.u)}</div></div></div>`).join("")}</div><p class="help">Left off the list because your kitchen has enough.</p>`, { tight: true }) : "";
+  const homeC = athome.length ? card(`Already at home · ${athome.length}`, `<div class="list">${athome.map(x => `<div class="item"><span class="emo" style="width:30px;height:30px;background:var(--okbg);color:var(--ok)">${ic("check", "i16")}</span><div class="grow"><div class="nm">${esc(capF(x.n))}</div><div class="tiny muted">need ${fmtQ(x.q, x.u)} · you have ${x.had == null ? "some" : fmtQ(x.had, x.u)}</div></div></div>`).join("")}</div><p class="help">Left off the list because your kitchen has enough.</p>`, { tight: true }) : "";
   const side = `<div class="col">${budgetCard()}${card("This trip", `<div class="row" style="gap:12px">${ring(items.length ? (items.length - left) / items.length : 0, 64, 7, "var(--a)", items.length ? Math.round((items.length - left) / items.length * 100) + "%" : "–")}<div class="grow"><div class="nm">${items.length - left} of ${items.length} in the basket</div><div class="tiny muted">When you're done, everything ticked goes into your kitchen and the amount you paid comes off your budget.</div></div></div>
     <button class="btn sm pri mt" data-act="logTrip">${ic("check")}Done shopping</button>`, { b: true })}${homeC}
     ${card("Staples you always keep", `<p class="small muted" style="margin:0">Left off the list: ${STAPLE.join(", ")}.</p>`, { b: true })}</div>`;
@@ -2357,7 +2358,7 @@ MP.shopping = (S, from, to) => _shopping(S, from, to).map(x => {
   const [q] = normQ(x.q, x.u);
   if (h.q >= q - 1e-6 && h.q > 0) return { ...x, home: "all", had: h.q };
   if (h.q > 0) return { ...x, q: CNT(x.u) ? Math.ceil(q - h.q - .01) : q - h.q, u: normQ(0, x.u)[1], had: h.q };
-  return { ...x, home: "some" };
+  return { ...x, home: "all", had: null };
 });
 MP.weekSpent = (S, d = today()) => { const s = E.weekStart(d, S.settings.weekStart), e = E.addDays(s, 6); return E.sum((S.spend || []).filter(x => x.kind === "groc" && x.date >= s && x.date <= e), x => x.amount); };
 MP.bought = S => {
@@ -2385,32 +2386,55 @@ function pantryForm(p) {
 }
 
 // ---------------------------------------------------------- shopping trip: ticked items -> kitchen, money -> budget
-function tickedItems() {
-  const [from, to, key] = listRange(), done = S.list[key] || [], items = MP.shopping(S, from, to);
+function listItems() {
+  const [from, to, key] = listRange(), done = S.list[key] || [], items = MP.shopping(S, from, to).filter(x => x.home !== "all");
   S.extra.forEach(x => items.push({ n: x.n, u: "pc", a: "x", q: 0, ex: x.id }));
-  return items.filter(x => done.includes(x.n.toLowerCase()));
+  return items.map(x => ({ ...x, on: isDone(done, x) }));
+}
+const tickedItems = () => listItems().filter(x => x.on);
+const defQ = x => x.q ? (x.u === "g" || x.u === "ml" ? Math.round(x.q) : x.u === "tbsp" || x.u === "tsp" ? "" : Math.ceil(x.q - .01)) : "";
+// ---------------------------------------------------------- weekly budget, with last week's leftover carried over on request
+const wkOf = d => E.weekStart(d, S.settings.weekStart);
+MP.budget = (S, ws) => S.settings.groc ? E.r2(S.settings.groc + ((S.carry || {})[ws] || 0)) : 0;
+MP.budgetLeft = (S, d = today()) => E.r2(MP.budget(S, wkOf(d)) - MP.weekSpent(S, d));
+// last week ended with money left and nobody decided yet -> offer to add it to this week
+MP.carryOffer = S => {
+  if (!S.settings.groc) return null;
+  const ws = wkOf(today()), lw = E.addDays(ws, -7);
+  if ((S.carryDone || {})[lw] || lw < wkOf(S.created || today())) return null;
+  if (!(S.spend || []).some(x => x.kind === "groc" && x.date >= lw && x.date < ws)) return null;
+  const left = MP.budgetLeft(S, lw); return left >= 1 ? { lw, ws, left } : null;
+};
+function carryBox() {
+  const o = MP.carryOffer(S); if (!o) return "";
+  return `<div class="hint small" style="margin:0 0 12px;padding:12px 14px;border-radius:14px;background:var(--a1)"><b>${fmt(o.left)}</b> of last week's grocery money is left over. Add it to this week?
+    <div class="row wrap" style="gap:6px;margin-top:8px"><button class="btn sm pri" data-act="carryAdd">${ic("plus")}Add ${fmt0(o.left)} to this week</button><button class="btn sm" data-act="carryKeep">Keep it saved</button></div></div>`;
 }
 function tripModal() {
-  const its = tickedItems(); window._trip = its; const st = S.settings, sp = MP.weekSpent(S);
-  modal("Done shopping", `<p class="muted" style="margin-top:0">${its.length ? "What you ticked goes into your kitchen, so dinner ideas know what you have. Fix any amount you bought more or less of." : "Nothing ticked yet – you can still log what you paid."}</p>
-    ${its.length ? `<div class="list" style="max-height:300px;overflow:auto">${its.map((x, i) => `<div class="item"><div class="grow nm">${esc(capF(x.n))}</div><input class="inp sm" style="width:86px;text-align:right" data-tq="${i}" inputmode="decimal" value="${x.q ? (x.u === "g" || x.u === "ml" ? Math.round(x.q) : x.u === "tbsp" || x.u === "tsp" ? "" : Math.ceil(x.q - .01)) : ""}" placeholder="some"><span class="tiny muted" style="width:40px">${x.q ? esc(x.u === "pc" ? "pcs" : x.u) : ""}</span></div>`).join("")}</div>` : ""}
-    <div class="frow mt">${field("What did you pay?", moneyInp("tpA", "", { auto: !its.length }))}${field("Date", inp("tpD", today(), { type: "date" }))}</div>
-    ${st.groc ? `<p class="help">Weekly budget ${fmt0(st.groc)} · ${fmt0(Math.max(0, st.groc - sp))} left before this trip.</p>` : ""}`,
+  const all = listItems(), any = all.some(x => x.on); all.forEach(x => { if (!any) x.on = true; }); window._trip = all;
+  const st = S.settings, left = MP.budgetLeft(S);
+  modal("Done shopping", `<p class="muted" style="margin-top:0">${all.length ? (any ? "What you ticked goes into your kitchen." : "Everything on your list is selected – tap off what you didn't buy.") + " Fix any amount that's different." : "Your list is empty – you can still log what you paid."}</p>
+    ${all.length ? `<div class="list" style="max-height:320px;overflow:auto">${all.map((x, i) => `<div class="item"><button class="tick ${x.on ? "on" : ""}" data-act="uTog" data-i="${i}" id="tt${i}" aria-label="Bought it">${ic("check")}</button><div class="grow nm">${esc(capF(x.n))}</div><input class="inp sm" style="width:86px;text-align:right" data-tq="${i}" inputmode="decimal" value="${defQ(x)}" placeholder="some"><span class="tiny muted" style="width:40px">${x.q ? esc(x.u === "pc" ? "pcs" : x.u) : ""}</span></div>`).join("")}</div>` : ""}
+    <div class="frow mt">${field("What did you pay?", moneyInp("tpA", "", { auto: !all.length }))}${field("Date", inp("tpD", today(), { type: "date" }))}</div>
+    ${st.groc ? `<p class="help">This week's budget ${fmt0(MP.budget(S, wkOf(today())))} · ${left >= 0 ? fmt(left) + " left" : fmt(-left) + " over"} before this trip.</p>` : ""}`,
     `<button class="btn pri" data-act="saveTrip">${ic("check")}Put it all away</button>`, { wide: 560 });
 }
 function saveTrip() {
-  const its = window._trip || [], a = num(val("tpA")), date = val("tpD") || today(), [, , key] = listRange();
-  if (!its.length && !(a > 0)) return bad("Type what you paid.");
-  const items = its.map((x, i) => { const el = $(`[data-tq="${i}"]`), v = el ? num(el.value) : x.q; return { n: x.n, q: v > 0 ? v : null, u: x.u || "pc", a: x.a }; });
+  const all = window._trip || [], a = num(val("tpA")), date = val("tpD") || today(), [, , key] = listRange();
+  const its = all.map((x, i) => ({ x, i })).filter(({ i }) => { const t = $("#tt" + i); return t ? t.classList.contains("on") : all[i].on; });
+  if (!its.length && !(a > 0)) return bad("Tick what you bought or type what you paid.");
+  if (!/^\d{4}-\d\d-\d\d$/.test(date)) return bad("Pick a date.");
+  const items = its.map(({ x, i }) => { const el = $(`[data-tq="${i}"]`), v = el ? num(el.value) : x.q; return { n: x.n, q: v > 0 ? E.r2(v) : null, u: x.u || "pc", a: x.a, ex: x.ex }; });
   commit(() => {
     const id = uid(); S.trips.push({ id, date, amount: a > 0 ? E.r2(a) : 0, items: items.map(x => ({ n: x.n, q: x.q, u: x.u, a: x.a })) });
     items.filter(x => !NONFOOD.test(x.n)).forEach(x => addPantry({ ...x, a: x.a === "x" ? guessAisle(x.n) : x.a }, date));
     if (a > 0) S.spend.push({ id: uid(), date, amount: E.r2(a), kind: "groc", trip: id });
-    S.list[key] = []; S.extra = S.extra.filter(x => !its.some(t => t.ex === x.id));
+    const bought = its.flatMap(({ x }) => [tkey(x), x.n.toLowerCase()]); S.list[key] = (S.list[key] || []).filter(n => !bought.includes(n));
+    S.extra = S.extra.filter(x => !items.some(t => t.ex === x.id));
   }, "shopping trip");
   VS.store = false; closeModal();
-  const left = S.settings.groc ? S.settings.groc - MP.weekSpent(S) : null;
-  toast(`${plural(items.length, "thing")} in your kitchen.${left != null ? left >= 0 ? ` ${fmt0(left)} left this week.` : ` ${fmt0(-left)} over this week.` : ""}`, () => undo());
+  const left = S.settings.groc ? MP.budgetLeft(S, date) : null, food = items.filter(x => !NONFOOD.test(x.n)).length;
+  toast(`${food ? plural(food, "thing") + " in your kitchen." : "Trip saved."}${left != null ? left >= 0 ? ` ${fmt(left)} left that week.` : ` ${fmt(-left)} over that week.` : ""}`, () => undo());
 }
 
 // ---------------------------------------------------------- after cooking: take out what you used
@@ -2448,12 +2472,14 @@ function ckDone() {
 }
 
 // ---------------------------------------------------------- cards
-function budgetCard() {
-  const st = S.settings, sp = MP.weekSpent(S), b = st.groc, trips = (S.trips || []).filter(t => t.date >= E.weekStart(today(), st.weekStart)).length;
-  if (!b) return card("Grocery budget", `<p class="small muted" style="margin-top:0">Set a weekly amount and every shopping trip counts down from it.</p><div class="row" style="gap:8px"><input class="inp" data-set="groc" inputmode="decimal" placeholder="e.g. 120" style="max-width:140px"><span class="tiny muted">a week</span></div>`, { soft: "soft" });
-  const left = b - sp, p = sp / b;
-  return card("Grocery budget · this week", `<div class="row" style="gap:16px">${ring(Math.min(1, p), 92, 9, left < 0 ? "var(--bad)" : "var(--a)", Math.round(p * 100) + "%")}<div class="grow"><div class="dish" style="font-size:1.7em;line-height:1.1">${fmt0(Math.abs(left))}</div><div class="small ${left < 0 ? "badc" : "muted"}">${left < 0 ? "over budget" : "left to spend"}</div><div class="tiny muted" style="margin-top:4px">${fmt0(sp)} of ${fmt0(b)} · ${plural(trips, "trip")}</div></div></div>
-    <button class="btn sm mt" data-act="logTrip">${ic("cart")}Log a shopping trip</button>`, { soft: "soft" });
+function budgetCard(slim) {
+  const st = S.settings, ws = wkOf(today()), sp = MP.weekSpent(S), b = MP.budget(S, ws), cv = (S.carry || {})[ws] || 0;
+  const trips = (S.trips || []).filter(t => t.date >= ws && t.date <= E.addDays(ws, 6)).length;
+  if (!st.groc) return slim ? "" : card("Grocery budget", `<p class="small muted" style="margin-top:0">Set a weekly amount and every shopping trip counts down from it.</p><div class="row" style="gap:8px"><input class="inp" data-set="groc" inputmode="decimal" placeholder="e.g. 120" style="max-width:140px"><span class="tiny muted">a week</span></div>`, { soft: "soft" });
+  const left = E.r2(b - sp), p = b ? sp / b : 0, dl = E.diff(today(), E.addDays(ws, 6)) + 1;
+  const body = `${carryBox()}<div class="row" style="gap:16px">${ring(Math.min(1, p), slim ? 70 : 92, slim ? 8 : 9, left < 0 ? "var(--bad)" : "var(--a)", Math.round(p * 100) + "%")}<div class="grow"><div class="dish" style="font-size:${slim ? 1.45 : 1.7}em;line-height:1.1">${fmt(Math.abs(left))}</div><div class="small ${left < 0 ? "badc" : "muted"}">${left < 0 ? "over budget this week" : `left this week · ${plural(dl, "day")} to go`}</div><div class="tiny muted" style="margin-top:4px">${fmt(sp)} of ${fmt0(b)}${cv ? ` (incl. ${fmt0(cv)} from last week)` : ""} · ${plural(trips, "trip")}</div></div></div>
+    <button class="btn sm mt" data-act="logTrip">${ic("cart")}Log a shopping trip</button>`;
+  return card("Grocery budget · this week", body, { soft: "soft" });
 }
 function fromHomeCard(n = 3) {
   const xs = MP.fromHome(S, n);
@@ -2509,7 +2535,9 @@ function kitchenActs(A) {
       toast(d.v === "tossed" ? "Gone. It happens." : d.v === "frozen" ? `${esc(f.n)} is in the freezer now.` : "Used up – nice.", () => undo()); },
     tick: d => { const [, , key] = listRange(); const l = S.list[key] = S.list[key] || []; const i = l.indexOf(d.n); commit(() => { if (i >= 0) l.splice(i, 1); else l.push(d.n); }); },
     store: () => { if (VS.store) return tripModal(); VS.store = true; render(); },
-    logTrip: () => tripModal(), logGroc: () => tripModal(), saveTrip: () => saveTrip(),
+    logTrip: () => tripModal(),
+    carryAdd: () => { const o = MP.carryOffer(S); if (!o) return; commit(() => { S.carry[o.ws] = E.r2((S.carry[o.ws] || 0) + o.left); S.carryDone[o.lw] = true; }, "carry over"); toast(`${fmt(o.left)} added to this week.`, () => undo()); },
+    carryKeep: () => { const o = MP.carryOffer(S); if (!o) return; commit(() => { S.carryDone[o.lw] = true; S.savedGroc = E.r2((S.savedGroc || 0) + o.left); }, "keep saved"); toast(`${fmt(o.left)} kept as savings. Nice.`, () => undo()); }, logGroc: () => tripModal(), saveTrip: () => saveTrip(),
     uTog: (d, el) => el.classList.toggle("on"), usedSave: () => usedSave(), usedSkip: () => { const U = window._used; closeModal(); if (U && U.then) U.then(); },
     diet: d => { if (!S.setup && !DEMO) obCollect(); S.settings.diet = d.v; save(); render(); },
     rf: (d, el) => { VS.rf = d.v; if (el && el.dataset.go2 && route() !== el.dataset.go2) go(el.dataset.go2); else render(); }
