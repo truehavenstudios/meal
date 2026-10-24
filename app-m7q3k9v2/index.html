@@ -1275,24 +1275,7 @@ function welcomeHTML(o) {
   </div></div>`;
 }
 
-/* engine: dates, recipes, picking logic, shopping list, insights – no DOM */
-const E = {
-  ds: d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"),
-  pd: s => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); },
-  addDays: (s, n) => { const d = E.pd(s); d.setDate(d.getDate() + n); return E.ds(d); },
-  diff: (a, b) => Math.round((E.pd(b) - E.pd(a)) / 864e5),
-  ym: s => s.slice(0, 7),
-  ymAdd: (m, n) => { const d = new Date(+m.slice(0, 4), +m.slice(5, 7) - 1 + n, 1); return E.ds(d).slice(0, 7); },
-  dow: s => E.pd(s).getDay(),
-  sum: (a, f = x => x) => a.reduce((t, x) => t + (+f(x) || 0), 0),
-  r2: v => Math.round(v * 100) / 100,
-  weekStart: (s, ws = 1) => { const k = (E.dow(s) - ws + 7) % 7; return E.addDays(s, -k); }
-};
-
-// ------------------------------------------------------------ recipes (amounts for 2 servings)
-// energy: 0 = barely any (no-cook or one tray), 1 = some (15–25 min), 2 = feeling good (proper cooking)
-// tags: v vegetarian · k kids like it · f freezes well · q 15 min or less
-// ingredient: aisle:qty unit name   aisles p fruit & veg, m meat & fish, d dairy & eggs, b bread, f frozen, s pantry
+/* recipes: 100 classics (amounts for 2 servings) */
 const R0 = [
   ["Snack plate dinner", 0, 10, "leaf", "vkq", ["p:1 pc cucumber", "p:200 g cherry tomatoes", "d:200 g hummus", "b:2 pc pita bread", "d:100 g cheddar"], ["Cut the cucumber and cheese into sticks.", "Put everything on one big plate. This counts as dinner."]],
   ["Tuna & white bean salad", 0, 10, "bowl", "q", ["s:1 can tuna", "s:1 can white beans", "p:1 pc red onion", "p:1 pc lemon", "s:1 tbsp olive oil"], ["Drain the tuna and the beans.", "Slice the onion very thin.", "Mix everything with lemon juice, oil, salt and pepper."]],
@@ -1334,13 +1317,111 @@ const R0 = [
   ["Chicken caesar bowl", 0, 10, "bowl", "kq", ["m:250 g cooked chicken", "p:1 pc lettuce", "d:30 g parmesan", "s:3 tbsp caesar dressing"], ["Chop the lettuce and chicken.", "Toss with dressing and parmesan."], "lunch"],
   ["Leftover fried rice bowl", 0, 8, "pan", "vq", ["s:250 g microwave rice", "d:2 pc eggs", "f:150 g frozen veg"], ["Fry rice and veg. {4}", "Push aside, scramble the eggs, mix."], "lunch"]
 ];
-const STAPLE = ["olive oil", "soy sauce", "cumin", "chili powder", "curry paste", "salt", "pepper"];
+
+// --- more dinners
+R0.push(
+  ["Chickpea & spinach curry", 1, 25, "pot", "f", ["s:1 can chickpeas", "s:400 ml coconut milk", "s:2 tbsp curry paste", "p:100 g spinach", "p:1 pc onion", "s:250 g microwave rice"], ["Fry the chopped onion. {5}", "Add curry paste, chickpeas and coconut milk, simmer. {12}", "Stir in the spinach, serve with rice."]],
+  ["Veggie noodle stir-fry", 1, 15, "pan", "q", ["s:200 g noodles", "f:400 g frozen stir-fry veg", "s:3 tbsp soy sauce", "p:2 pc garlic cloves"], ["Cook the noodles. {4}", "Fry the veg and sliced garlic. {5}", "Add noodles and soy sauce, toss."]],
+  ["Black bean burrito bowls", 1, 15, "bowl", "kq", ["s:250 g microwave rice", "s:1 can black beans", "s:1 can sweetcorn", "p:1 pc avocado", "s:4 tbsp salsa", "p:1 pc lime"], ["Heat the rice, beans and corn.", "Slice the avocado.", "Build bowls, add salsa and lime."]],
+  ["Lentil bolognese", 2, 40, "pasta", "kf", ["s:150 g red lentils", "s:1 can chopped tomatoes", "p:1 pc onion", "p:1 pc carrot", "s:200 g spaghetti"], ["Fry chopped onion and carrot. {6}", "Add lentils, tomatoes and 300 ml water, simmer. {25}", "Cook the spaghetti and serve."]],
+  ["Minestrone soup", 1, 35, "pot", "f", ["p:1 pc onion", "p:1 pc carrot", "p:1 pc zucchini", "s:1 can chopped tomatoes", "s:1 can white beans", "s:100 g small pasta", "s:1 pc stock cube"], ["Fry the chopped veg. {6}", "Add tomatoes, beans, stock cube and 800 ml water. {15}", "Add the pasta and cook until soft. {8}"]],
+  ["Creamy pumpkin soup", 1, 30, "pot", "f", ["p:600 g pumpkin", "p:1 pc onion", "s:400 ml coconut milk", "s:1 pc stock cube"], ["Fry onion and pumpkin cubes. {5}", "Add stock cube and 500 ml water, simmer. {18}", "Add coconut milk and blend smooth."]],
+  ["Falafel wraps", 0, 15, "wrap", "q", ["f:12 pc frozen falafel", "b:4 pc wraps", "d:150 g hummus", "p:1 pc lettuce", "p:2 pc tomatoes"], ["Bake the falafel. {12}", "Spread hummus on the wraps, add lettuce, tomato and falafel."]],
+  ["Peanut noodles", 1, 15, "bowl", "q", ["s:200 g noodles", "s:3 tbsp peanut butter", "s:2 tbsp soy sauce", "p:1 pc lime", "p:1 pc cucumber"], ["Cook the noodles. {4}", "Whisk peanut butter, soy sauce, lime and a splash of hot water.", "Toss with noodles, top with cucumber."]],
+  ["Loaded sweet potatoes", 0, 15, "pot", "q", ["p:2 pc sweet potatoes", "s:1 can black beans", "s:4 tbsp salsa", "p:1 pc avocado"], ["Prick the sweet potatoes and microwave until soft. {10}", "Heat the beans.", "Split, fill with beans, salsa and avocado."]],
+  ["Ratatouille with couscous", 2, 45, "pot", "f", ["p:1 pc eggplant", "p:1 pc zucchini", "p:1 pc bell pepper", "p:1 pc onion", "s:1 can chopped tomatoes", "s:150 g couscous"], ["Cut all the veg into cubes and fry. {10}", "Add tomatoes and simmer. {25}", "Pour boiling water over the couscous, cover. {5}"]],
+  ["Teriyaki tofu bowls", 1, 25, "bowl", "", ["d:400 g tofu", "f:400 g frozen stir-fry veg", "s:3 tbsp teriyaki sauce", "s:250 g microwave rice"], ["Cube the tofu and fry until golden. {8}", "Add the veg. {5}", "Add sauce, serve on rice."]],
+  ["Mushroom risotto", 2, 40, "pot", "", ["s:200 g risotto rice", "p:250 g mushrooms", "p:1 pc onion", "s:1 pc stock cube", "d:40 g parmesan"], ["Fry onion and mushrooms. {6}", "Add rice, then hot stock a ladle at a time, stirring. {22}", "Stir in the parmesan."]],
+  ["Spaghetti aglio e olio", 0, 15, "pasta", "q", ["s:200 g spaghetti", "p:4 pc garlic cloves", "s:3 tbsp olive oil", "s:1 tsp chili flakes"], ["Cook the spaghetti. {10}", "Gently fry sliced garlic and chili in the oil. {2}", "Toss with the pasta and a splash of pasta water."]],
+  ["Vegetable lasagna", 2, 60, "pasta", "kf", ["s:9 pc lasagna sheets", "s:500 g pasta sauce", "p:1 pc zucchini", "p:100 g spinach", "d:250 g ricotta", "d:1 pc mozzarella"], ["Fry the sliced zucchini and spinach. {5}", "Layer sauce, sheets, veg and ricotta three times, top with mozzarella.", "Bake at 190 °C. {40}"]],
+  ["Flatbread margherita", 0, 15, "pizza", "kq", ["b:2 pc flatbreads", "s:6 tbsp tomato sauce", "d:1 pc mozzarella", "p:1 bunch basil"], ["Spread sauce on the flatbreads, add torn mozzarella.", "Bake at 220 °C. {10}", "Top with basil."]],
+  ["Halloumi veg tray bake", 0, 35, "tray", "", ["d:250 g halloumi", "p:1 pc bell pepper", "p:1 pc zucchini", "p:1 pc red onion", "s:1 tbsp olive oil"], ["Cut the veg and halloumi, put on one tray with oil.", "Roast at 200 °C. {30}"]],
+  ["Three bean chili", 1, 35, "pot", "f", ["s:1 can kidney beans", "s:1 can black beans", "s:1 can chopped tomatoes", "p:1 pc onion", "p:1 pc bell pepper", "s:2 tsp chili powder"], ["Fry onion and pepper. {6}", "Add beans, tomatoes and chili, simmer. {25}", "Serve with rice or bread."]],
+  ["Mushroom stroganoff", 1, 25, "pan", "", ["p:300 g mushrooms", "p:1 pc onion", "d:150 ml sour cream", "s:250 g microwave rice"], ["Fry onion and sliced mushrooms. {10}", "Stir in sour cream, warm through. {2}", "Serve on rice."]],
+  ["Potato frittata", 1, 25, "egg", "k", ["d:6 pc eggs", "p:400 g potatoes", "p:1 pc onion", "d:60 g cheddar"], ["Fry thin potato slices and onion until soft. {12}", "Pour in beaten eggs and cheese, cover. {8}", "Cut into wedges."]],
+  ["Chicken fajitas", 1, 25, "taco", "k", ["m:400 g chicken breast", "p:2 pc bell pepper", "p:1 pc onion", "s:1 pack fajita seasoning", "b:6 pc tortillas", "d:4 tbsp sour cream"], ["Slice chicken, peppers and onion.", "Fry with the seasoning. {10}", "Fill the tortillas, add sour cream."]],
+  ["Chicken noodle soup", 1, 30, "pot", "kf", ["m:300 g chicken breast", "p:1 pc carrot", "p:1 pc onion", "s:100 g noodles", "s:1 pc stock cube"], ["Simmer chicken, veg and stock in 1 l water. {18}", "Shred the chicken, add the noodles. {5}"]],
+  ["Honey garlic chicken", 1, 25, "pan", "k", ["m:4 pc chicken thighs", "s:3 tbsp honey", "s:3 tbsp soy sauce", "p:3 pc garlic cloves", "s:250 g microwave rice"], ["Fry the chicken until golden. {12}", "Add honey, soy sauce and garlic, let it go sticky. {5}", "Serve on rice."]],
+  ["Butter chicken", 2, 40, "pot", "kf", ["m:400 g chicken breast", "s:1 can chopped tomatoes", "d:150 ml cream", "s:2 tbsp curry paste", "d:30 g butter", "s:250 g microwave rice"], ["Fry the chicken in butter. {8}", "Add paste and tomatoes, simmer. {15}", "Stir in the cream, serve with rice."]],
+  ["Pesto chicken tray bake", 0, 35, "tray", "k", ["m:4 pc chicken thighs", "p:400 g baby potatoes", "p:200 g cherry tomatoes", "s:4 tbsp pesto"], ["Toss everything with the pesto on one tray.", "Roast at 200 °C. {32}"]],
+  ["Beef & broccoli", 1, 20, "pan", "", ["m:300 g beef strips", "p:1 pc broccoli", "s:3 tbsp soy sauce", "p:2 pc garlic cloves", "s:250 g microwave rice"], ["Fry the beef quickly, take it out. {3}", "Fry broccoli and garlic. {5}", "Add beef and soy sauce, serve on rice."]],
+  ["Shepherd's pie", 2, 60, "pot", "kf", ["m:400 g beef mince", "p:800 g potatoes", "p:1 pc onion", "p:1 pc carrot", "f:150 g frozen peas", "d:30 g butter"], ["Boil the potatoes and mash with butter. {20}", "Fry mince, onion and carrot, add peas. {12}", "Top with mash, bake at 200 °C. {20}"]],
+  ["Meatballs in tomato sauce", 2, 40, "pot", "kf", ["m:400 g beef mince", "s:400 g pasta sauce", "s:200 g spaghetti", "d:30 g parmesan"], ["Roll the mince into small balls and brown them. {8}", "Add the sauce, simmer. {15}", "Serve on spaghetti with parmesan."]],
+  ["Pork chops with mash", 2, 35, "pan", "k", ["m:2 pc pork chops", "p:600 g potatoes", "f:200 g frozen green beans", "d:30 g butter"], ["Boil the potatoes and mash with butter. {20}", "Fry the chops. {4}", "Flip and fry. {4}", "Cook the beans and serve."]],
+  ["Sausage pasta", 1, 25, "pasta", "k", ["m:4 pc sausages", "s:400 g pasta sauce", "s:200 g pasta"], ["Cook the pasta. {10}", "Squeeze the sausage meat out and fry in pieces. {8}", "Add the sauce and pasta."]],
+  ["Chicken quesadillas", 1, 15, "wrap", "kq", ["m:250 g cooked chicken", "b:4 pc tortillas", "d:150 g cheddar", "s:4 tbsp salsa"], ["Fill tortillas with chicken and cheese, fold.", "Fry until golden. {3}", "Flip and fry. {3}", "Serve with salsa."]],
+  ["Fish tacos", 1, 20, "taco", "", ["f:2 pc breaded fish fillets", "b:6 pc tortillas", "p:200 g cabbage", "p:1 pc lime", "d:4 tbsp sour cream"], ["Bake the fish. {18}", "Shred the cabbage, toss with lime.", "Fill tortillas with fish, slaw and sour cream."]],
+  ["Tuna pasta bake", 1, 35, "pasta", "kf", ["s:200 g pasta", "s:2 can tuna", "s:400 g pasta sauce", "d:100 g cheddar"], ["Cook the pasta. {9}", "Mix with tuna and sauce, top with cheese.", "Bake at 200 °C. {20}"]],
+  ["Teriyaki salmon bowls", 1, 20, "fish", "", ["m:2 pc salmon fillets", "s:3 tbsp teriyaki sauce", "s:250 g microwave rice", "p:1 pc cucumber"], ["Bake the salmon brushed with sauce at 200 °C. {14}", "Heat the rice, slice the cucumber.", "Build the bowls."]],
+  ["Garlic prawn linguine", 1, 20, "pasta", "", ["f:250 g frozen shrimp", "s:200 g spaghetti", "p:3 pc garlic cloves", "p:200 g cherry tomatoes", "s:2 tbsp olive oil"], ["Cook the pasta. {10}", "Fry garlic, tomatoes and shrimp. {5}", "Toss together."]],
+  ["Lemon butter cod & potatoes", 1, 30, "fish", "", ["m:2 pc cod fillets", "p:500 g baby potatoes", "d:30 g butter", "p:1 pc lemon"], ["Roast the potatoes at 200 °C. {25}", "Add cod with butter and lemon for the last minutes. {12}"]],
+  ["Lamb kofta flatbreads", 2, 30, "wrap", "", ["m:400 g lamb mince", "b:4 pc flatbreads", "d:150 g yogurt", "p:1 pc cucumber", "p:1 pc red onion"], ["Shape the mince with salt and cumin into sausages.", "Grill or fry. {10}", "Serve in flatbreads with yogurt, cucumber and onion."]],
+  ["Chicken pot pie", 2, 50, "pot", "kf", ["m:400 g chicken breast", "f:300 g frozen mixed veg", "d:200 ml cream", "d:1 pc puff pastry"], ["Fry the chicken in pieces. {8}", "Add veg and cream, put in a dish, cover with pastry.", "Bake at 200 °C. {30}"]],
+  ["Chicken alfredo", 1, 25, "pasta", "k", ["s:200 g pasta", "m:300 g chicken breast", "d:200 ml cream", "d:50 g parmesan"], ["Cook the pasta. {10}", "Fry the chicken in strips. {8}", "Add cream and parmesan, toss with pasta."]],
+  ["Jambalaya", 2, 40, "pot", "f", ["m:200 g chorizo", "m:250 g chicken breast", "s:200 g long grain rice", "s:1 can chopped tomatoes", "p:1 pc bell pepper", "p:1 pc onion"], ["Fry chorizo, chicken, onion and pepper. {8}", "Add rice, tomatoes and 400 ml water, cover. {20}"]],
+  ["Hot dogs", 0, 10, "sand", "kq", ["m:4 pc hot dog sausages", "b:4 pc hot dog buns", "p:1 pc onion", "s:4 tbsp ketchup"], ["Heat the sausages in hot water. {6}", "Put in buns with onion and ketchup."]],
+  ["Loaded nachos", 0, 15, "tray", "kq", ["s:200 g tortilla chips", "s:1 can black beans", "d:150 g cheddar", "s:4 tbsp salsa", "p:1 pc avocado"], ["Spread chips, beans and cheese on a tray.", "Bake at 200 °C. {8}", "Top with salsa and avocado."]],
+  ["Dumplings & greens", 0, 12, "pan", "q", ["f:20 pc frozen dumplings", "p:200 g pak choi", "s:2 tbsp soy sauce"], ["Fry the dumplings, add a splash of water and cover. {8}", "Add pak choi for the last 2 minutes.", "Serve with soy sauce."]],
+  ["Tuna mayo jacket potatoes", 0, 15, "pot", "q", ["p:2 pc large potatoes", "s:1 can tuna", "s:3 tbsp mayo", "s:1 can sweetcorn"], ["Microwave the pricked potatoes. {10}", "Mix tuna, mayo and corn.", "Fill the potatoes."]],
+  ["Slow beef stew", 2, 120, "pot", "f", ["m:500 g stewing beef", "p:3 pc carrot", "p:400 g potatoes", "p:1 pc onion", "s:1 pc stock cube"], ["Brown the beef. {8}", "Add veg, stock cube and 800 ml water, cover and simmer low. {100}"]]
+);
+// --- more breakfasts
+R0.push(
+  ["Banana pancakes", 1, 15, "egg", "kq", ["s:120 g flour", "d:250 ml milk", "d:1 pc eggs", "p:1 pc bananas"], ["Whisk flour, milk, egg and mashed banana.", "Fry small pancakes. {2}", "Flip and fry. {2}"], "breakfast"],
+  ["Avocado toast", 0, 8, "bread", "q", ["b:4 pc bread slices", "p:2 pc avocado", "p:1 pc lemon"], ["Toast the bread.", "Mash avocado with lemon and salt, spread."], "breakfast"],
+  ["Berry smoothie bowl", 0, 5, "bowl", "kq", ["f:300 g frozen berries", "p:2 pc bananas", "s:200 ml oat drink", "s:4 tbsp granola"], ["Blend berries, banana and oat drink until thick.", "Top with granola."], "breakfast"],
+  ["Breakfast burritos", 1, 15, "wrap", "kq", ["d:4 pc eggs", "b:2 pc tortillas", "d:60 g cheddar", "s:4 tbsp salsa"], ["Scramble the eggs. {3}", "Fill tortillas with egg, cheese and salsa, roll up."], "breakfast"],
+  ["French toast", 1, 15, "bread", "kq", ["b:4 pc bread slices", "d:2 pc eggs", "d:150 ml milk", "s:1 tsp cinnamon"], ["Whisk eggs, milk and cinnamon.", "Dip the bread and fry. {3}", "Flip and fry. {3}"], "breakfast"],
+  ["Apple cinnamon porridge", 0, 8, "bowl", "kq", ["s:100 g oats", "d:400 ml milk", "p:1 pc apple", "s:1 tsp cinnamon"], ["Simmer oats and milk, stirring. {5}", "Top with grated apple and cinnamon."], "breakfast"],
+  ["Chia pudding", 0, 5, "bowl", "q", ["s:4 tbsp chia seeds", "s:300 ml oat drink", "p:150 g berries"], ["Stir chia into the oat drink the night before.", "Top with berries."], "breakfast"],
+  ["Bagel with cream cheese", 0, 5, "bread", "kq", ["b:2 pc bagels", "d:4 tbsp cream cheese", "p:1 pc tomato"], ["Toast the bagels.", "Spread cream cheese, add tomato slices."], "breakfast"]
+);
+// --- more lunches
+R0.push(
+  ["Caprese pasta salad", 0, 15, "pasta", "q", ["s:200 g pasta", "p:200 g cherry tomatoes", "d:1 pc mozzarella", "s:3 tbsp pesto"], ["Cook the pasta and cool it under cold water. {10}", "Mix with halved tomatoes, mozzarella and pesto."], "lunch"],
+  ["Chickpea salad", 0, 10, "leaf", "q", ["s:1 can chickpeas", "p:1 pc cucumber", "p:200 g cherry tomatoes", "p:1 pc red onion", "p:1 pc lemon", "s:2 tbsp olive oil"], ["Drain the chickpeas, chop the veg.", "Mix with lemon, oil and salt."], "lunch"],
+  ["BLT sandwich", 0, 10, "sand", "kq", ["b:4 pc bread slices", "m:6 pc bacon slices", "p:1 pc lettuce", "p:2 pc tomatoes", "s:2 tbsp mayo"], ["Fry the bacon crisp. {5}", "Build sandwiches with mayo, lettuce and tomato."], "lunch"],
+  ["Ham & cheese toastie", 0, 10, "sand", "kq", ["b:4 pc bread slices", "m:4 pc ham slices", "d:80 g cheddar", "d:15 g butter"], ["Fill bread with ham and cheese, butter the outside.", "Fry until golden on both sides. {6}"], "lunch"],
+  ["Red lentil soup", 1, 30, "pot", "f", ["s:150 g red lentils", "p:1 pc carrot", "p:1 pc onion", "s:1 pc stock cube", "s:1 tsp cumin"], ["Fry onion, carrot and cumin. {5}", "Add lentils, stock cube and 1 l water, simmer. {20}", "Blend if you like."], "lunch"],
+  ["Tuna salad wrap", 0, 8, "wrap", "q", ["s:1 can tuna", "b:2 pc wraps", "s:2 tbsp mayo", "p:1 pc lettuce"], ["Mix tuna and mayo.", "Fill the wraps with lettuce and tuna."], "lunch"],
+  ["Egg salad sandwich", 0, 15, "sand", "kq", ["d:4 pc eggs", "b:4 pc bread slices", "s:2 tbsp mayo"], ["Boil the eggs. {9}", "Mash with mayo, salt and pepper, fill the bread."], "lunch"],
+  ["Couscous salad", 0, 10, "bowl", "q", ["s:150 g couscous", "p:1 pc cucumber", "p:1 pc bell pepper", "p:1 pc lemon", "s:2 tbsp olive oil"], ["Pour boiling water over the couscous, cover. {5}", "Fluff, mix with chopped veg, lemon and oil."], "lunch"],
+  ["Veggie sushi bowl", 0, 10, "bowl", "q", ["s:250 g microwave rice", "p:1 pc avocado", "p:1 pc cucumber", "s:2 tbsp soy sauce"], ["Heat the rice.", "Top with sliced avocado and cucumber, add soy sauce."], "lunch"],
+  ["Carrot ginger soup", 1, 30, "pot", "f", ["p:5 pc carrot", "p:1 pc onion", "p:1 pc ginger", "s:1 pc stock cube"], ["Fry onion and ginger. {4}", "Add sliced carrots, stock cube and 800 ml water, simmer. {20}", "Blend smooth."], "lunch"]
+);
+
+/* engine: dates, recipes, picking logic, shopping list, insights – no DOM */
+const E = {
+  ds: d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"),
+  pd: s => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); },
+  addDays: (s, n) => { const d = E.pd(s); d.setDate(d.getDate() + n); return E.ds(d); },
+  diff: (a, b) => Math.round((E.pd(b) - E.pd(a)) / 864e5),
+  ym: s => s.slice(0, 7),
+  ymAdd: (m, n) => { const d = new Date(+m.slice(0, 4), +m.slice(5, 7) - 1 + n, 1); return E.ds(d).slice(0, 7); },
+  dow: s => E.pd(s).getDay(),
+  sum: (a, f = x => x) => a.reduce((t, x) => t + (+f(x) || 0), 0),
+  r2: v => Math.round(v * 100) / 100,
+  weekStart: (s, ws = 1) => { const k = (E.dow(s) - ws + 7) % 7; return E.addDays(s, -k); }
+};
+
+// ------------------------------------------------------------ recipes (amounts for 2 servings)
+// energy: 0 = barely any (no-cook or one tray), 1 = some (15–25 min), 2 = feeling good (proper cooking)
+// tags: v vegetarian · k kids like it · f freezes well · q 15 min or less
+// ingredient: aisle:qty unit name   aisles p fruit & veg, m meat & fish, d dairy & eggs, b bread, f frozen, s pantry
+const STAPLE = ["olive oil", "soy sauce", "cumin", "chili powder", "curry paste", "salt", "pepper", "cinnamon", "chili flakes"];
+const MEAT_W = /chicken|beef|pork|bacon|sausage|\bham\b|turkey|lamb|mince|chorizo|prosciutto|hot dog/, FISH_W = /salmon|tuna|\bcod\b|shrimp|prawn|fish|anchov/;
+const ANIMAL_W = /\begg|\bmilk|cheese|cheddar|feta|mozzarella|parmesan|ricotta|halloumi|yogurt|\bbutter|cream|honey|mayo/, PLANT_OK = /coconut milk|peanut butter|oat drink/;
+function dietOf(r) { const ns = r.i.map(x => parseIng(x).n.toLowerCase()); const meat = ns.some(n => MEAT_W.test(n)), fish = ns.some(n => FISH_W.test(n)), animal = ns.some(n => !PLANT_OK.test(n) && ANIMAL_W.test(n));
+  return meat ? "all" : fish ? "pescatarian" : animal ? "vegetarian" : "vegan"; }
+const DIETS = [["all", "Everything"], ["pescatarian", "Pescatarian"], ["vegetarian", "Vegetarian"], ["vegan", "Vegan"]];
+const dietOk = (want, has) => want === "all" || (want === "pescatarian" && has !== "all") || (want === "vegetarian" && (has === "vegetarian" || has === "vegan")) || (want === "vegan" && has === "vegan");
 const AISLE = { p: "Fruit & veg", b: "Bread & bakery", m: "Meat & fish", d: "Dairy & eggs", f: "Frozen", s: "Pantry", x: "Everything else" };
 const AORDER = ["p", "b", "m", "d", "f", "s", "x"];
 const SHELF = { p: 5, m: 2, d: 6, b: 3 };
 const ENERGY = [["Barely any", "No-cook or one tray"], ["Some", "About 15 to 25 minutes"], ["Feeling good", "Proper cooking"]];
 const SLOTS = [["breakfast", "Breakfast"], ["lunch", "Lunch"], ["dinner", "Dinner"]];
 const BASE = R0.map((r, i) => ({ id: "b" + i, n: r[0], e: r[1], t: r[2], c: r[3], tags: r[4], i: r[5], s: r[6], slot: r[7] || "dinner" }));
+BASE.forEach(r => { r.diet = dietOf(r); if (r.diet !== "all" && r.diet !== "pescatarian" && !r.tags.includes("v")) r.tags += "v"; if (r.diet === "vegan") r.tags += "g"; });
 function parseIng(s) {
   const k = s.indexOf(":"), a = k > 0 && k < 3 ? s.slice(0, k) : "s", rest = k > 0 && k < 3 ? s.slice(k + 1) : s;
   const m = rest.match(/^([\d.]+)\s+(g|kg|ml|l|tbsp|tsp|pc|can|pack|bunch|cup)\s+(.+)$/);
@@ -1357,7 +1438,7 @@ function fmtQ(q, u) {
 
 // ------------------------------------------------------------ the picking logic
 const MP = {
-  recipes: S => BASE.concat(S.mine || []).filter(r => !(S.hidden || []).includes(r.id)),
+  recipes: S => BASE.concat(S.mine || []).filter(r => !(S.hidden || []).includes(r.id) && dietOk((S.settings || {}).diet || "all", r.diet || dietOf(r))),
   rec: (S, id) => BASE.concat(S.mine || []).find(r => r.id === id),
   slot: (S, d, slot = "dinner") => ((S.plan[d] || {})[slot]) || null,
   eaters: (S, d) => { const ids = (S.plan[d] || {}).eat; return S.people.filter(p => !ids || ids.includes(p.id)); },
@@ -1600,6 +1681,8 @@ function toast(msg, act, label = "Undo") {
 
 
 /* example data for the demo and "Explore with example data" */
+const TRIP = [["Onion", 4, "pc", "p"], ["Eggs", 12, "pc", "d"], ["Microwave rice", 2, "pack", "s"], ["Cheddar", 200, "g", "d"], ["Chicken breast", 500, "g", "m"], ["Bell pepper", 3, "pc", "p"], ["Pasta", 500, "g", "s"], ["Milk", 2000, "ml", "d"], ["Bananas", 6, "pc", "p"],
+  ["Chopped tomatoes", 2, "can", "s"], ["Carrot", 6, "pc", "p"], ["Cucumber", 1, "pc", "p"], ["Bread slices", 1, "pack", "b"], ["Beef mince", 500, "g", "m"], ["Tortillas", 8, "pc", "b"], ["Coffee", 1, "pack", "x"]];
 window.BP_SAMPLE = function () {
   const s = blank(), t = today(), ws = E.weekStart(t, 1);
   s.setup = true; s.sample = true;
@@ -1615,11 +1698,15 @@ window.BP_SAMPLE = function () {
     const d = E.addDays(ws, -7 * w + i), v = (w * 7 + i * 3) % 9;
     s.plan[d] = { dinner: v === 0 || v === 5 ? { out: true } : v === 3 ? { frz: "z0", n: "Spaghetti bolognese", left: true, done: true } : v === 7 ? null : { r: "b" + ((w * 5 + i * 3) % 30), done: true } };
     if (v === 0 || v === 5) s.spend.push({ id: uid(), date: d, amount: 38 + (w % 3) * 6, kind: "take" });
-    if (i === 5) s.spend.push({ id: uid(), date: d, amount: 104 + (w * 13) % 50, kind: "groc" });
+    if (i === 5) { const id = uid(), amt = 104 + (w * 13) % 50; s.spend.push({ id: uid(), date: d, amount: amt, kind: "groc", trip: id });
+      s.trips.push({ id, date: d, amount: amt, items: TRIP.filter((x, j) => (j + w) % 4 !== 0 || j < 4).map(([n, q, u, a]) => ({ n, q, u, a })) }); }
   }
-  s.spend.push({ id: uid(), date: ws, amount: 126, kind: "groc" });
+  const id0 = uid(); s.spend.push({ id: uid(), date: ws, amount: 96, kind: "groc", trip: id0 }); s.trips.push({ id: id0, date: ws, amount: 96, items: TRIP.slice(0, 9).map(([n, q, u, a]) => ({ n, q, u, a })) });
   for (let i = 1; i <= 30; i++) s.energy[E.addDays(t, -i)] = [1, 0, 2, 1, 0, 1, 2, 1][i % 8];
-  s.fridge = [{ id: "f1", n: "Salmon fillets", added: E.addDays(t, -1), days: 2 }, { id: "f2", n: "Spinach", added: E.addDays(t, -3), days: 5 }, { id: "f3", n: "Cherry tomatoes", added: E.addDays(t, -2), days: 5 }, { id: "f4", n: "Feta", added: E.addDays(t, -2), days: 6 }];
+  s.pantry = [["Salmon fillets", 2, "pc", "m", 1], ["Spinach", 150, "g", "p", 0], ["Cherry tomatoes", 250, "g", "p", 3], ["Feta", 200, "g", "d", 4], ["Eggs", 6, "pc", "d", 9], ["Cheddar", 180, "g", "d", 8],
+    ["Onion", 3, "pc", "p", 12], ["Bell pepper", 2, "pc", "p", 4], ["Carrot", 4, "pc", "p", 10], ["Pasta", 500, "g", "s"], ["Microwave rice", 2, "pack", "s"], ["Chopped tomatoes", 2, "can", "s"],
+    ["Garlic cloves", null, "pc", "p"], ["Tortillas", 6, "pc", "b", 5], ["Black beans", 1, "can", "s"], ["Butter", null, "pc", "d", 20], ["Coconut milk", 1, "can", "s"], ["Lemon", 1, "pc", "p", 6]]
+    .map(([n, q, u, a, d], i) => ({ id: "k" + i, n, q, u, a, added: E.addDays(t, -2), exp: d == null ? "" : E.addDays(t, d) }));
   s.freezer = [{ id: "z1", n: "Chili con carne", r: "b24", portions: 4, date: E.addDays(t, -20) }, { id: "z2", n: "Red lentil curry", r: "b21", portions: 2, date: E.addDays(t, -9) }, { id: "z3", n: "Spaghetti bolognese", r: "b25", portions: 3, date: E.addDays(t, -41) }];
   s.used = 23; s.tossed = 4;
   s.list[E.addDays(ws, 7)] = ["broccoli", "lemon"]; s.extra = [{ id: "x1", n: "Dish soap" }, { id: "x2", n: "Coffee" }];
@@ -1630,8 +1717,8 @@ window.BP_SAMPLE = function () {
 function blank() {
   return {
     v: 1, setup: false, created: today(),
-    settings: { name: "", currency: "USD", theme: "Sage", dark: "auto", weekStart: 1, dinner: "18:30", slots: ["dinner"], groc: 0, takeout: 15, home: 4, simple: true, themes: {}, hideStart: false },
-    people: [], plan: {}, energy: {}, fridge: [], freezer: [], list: {}, extra: [], spend: [], go: [], mine: [], hidden: [], used: 0, tossed: 0, lastBackup: ""
+    settings: { name: "", currency: "USD", theme: "Sage", dark: "auto", weekStart: 1, dinner: "18:30", slots: ["dinner"], groc: 0, takeout: 15, home: 4, simple: true, themes: {}, hideStart: false, diet: "all" },
+    people: [], plan: {}, energy: {}, pantry: [], trips: [], freezer: [], list: {}, extra: [], spend: [], go: [], mine: [], hidden: [], used: 0, tossed: 0, lastBackup: ""
   };
 }
 let loadProblem = "";
@@ -1650,6 +1737,7 @@ function load() {
 }
 function migrate(s) {
   if (!s || typeof s !== "object" || Array.isArray(s) || !("plan" in s || "settings" in s)) throw new Error("not a meal planner file");
+  if (Array.isArray(s.fridge) && !Array.isArray(s.pantry)) s.pantry = s.fridge.filter(f => f && f.n).map(f => ({ id: f.id || uid(), n: f.n, q: null, u: "pc", a: guessAisle(f.n), added: f.added || today(), exp: f.added ? E.addDays(f.added, +f.days || 3) : "" }));
   const b = blank(), out = {};
   for (const k in b) {
     const v = s[k], d = b[k];
@@ -1663,6 +1751,9 @@ function migrate(s) {
   out.mine = out.mine.filter(r => r && r.id && r.n && Array.isArray(r.i) && Array.isArray(r.s)).map(r => ({ e: 1, t: 20, c: "bowl", tags: "", slot: "dinner", ...r }));
   out.spend = out.spend.filter(x => x && /^\d{4}-\d\d-\d\d$/.test(x.date) && isFinite(+x.amount)).map(x => ({ ...x, amount: Math.abs(+x.amount) }));
   out.freezer = out.freezer.filter(x => x && x.id && x.n).map(x => ({ ...x, portions: Math.max(0, +x.portions || 0) }));
+  out.pantry = out.pantry.filter(p => p && p.id && p.n).map(p => ({ ...p, q: p.q == null || p.q === "" || !isFinite(+p.q) ? null : +p.q, u: p.u || "pc", exp: p.exp || "" }));
+  out.trips = out.trips.filter(t => t && t.id && /^\d{4}-\d\d-\d\d$/.test(t.date)).map(t => ({ ...t, amount: Math.abs(+t.amount || 0), items: Array.isArray(t.items) ? t.items.filter(x => x && x.n) : [] }));
+  if (!DIETS.some(d => d[0] === out.settings.diet)) out.settings.diet = "all";
   return out;
 }
 let saveT = null;
@@ -1725,7 +1816,7 @@ const plural = (n, w, p) => n + " " + (n === 1 ? w : (p || w + "s"));
 const hm = d => d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 const NAV = [
   ["Every day", [["home", "Tonight", "fork"], ["week", "Week", "week"], ["list", "Shopping list", "cart"], ["recipes", "Recipes", "book"]]],
-  ["Plan ahead", [["month", "Month", "cal"], ["kitchen", "Fridge & freezer", "fridge"], ["household", "Household", "users"]]],
+  ["Plan ahead", [["month", "Month", "cal"], ["kitchen", "Kitchen", "fridge"], ["household", "Household", "users"]]],
   ["Look back", [["insights", "Insights", "worth"], ["settings", "Settings", "gear"]]]
 ];
 const ROUTES = NAV.flatMap(g => g[1].map(x => x[0]));
@@ -1754,8 +1845,8 @@ function shell(content) {
     <button class="fab" data-act="quickAdd" aria-label="Add">${ic("plus")}</button>
     <a href="#/list" class="${r === "list" ? "on" : ""}">${ic("cart")}List</a><button data-act="moreNav" class="${["home", "week", "list"].includes(r) ? "" : "on"}" style="${["home", "week", "list"].includes(r) ? "" : "color:var(--a)"}">${ic("more")}More</button></nav>`;
 }
-const leftDays = f => E.diff(today(), E.addDays(f.added, f.days));
-const useSoon = () => (S.fridge || []).filter(f => leftDays(f) <= 1);
+const leftDays = f => f.exp ? E.diff(today(), f.exp) : 99;
+const useSoon = () => (S.pantry || []).filter(f => f.exp && leftDays(f) <= 1);
 
 // ------------------------------------------------------------ tonight
 function vHome() {
@@ -1797,19 +1888,20 @@ function vHome() {
   for (let d = m0; d <= t; d = E.addDays(d, 1)) { const q = MP.slot(S, d); if (q && q.done && !q.out) home++; }
   const groc = wk[wk.length - 1].groc, portions = E.sum(S.freezer, z => z.portions);
   const tiles = `<div class="tiles">${tile("Planned this week", `${planned}<small>/7</small>`, planned < 7 ? `<button class="link" data-act="fillWeek">Fill the rest</button>` : "all set", planned === 7 ? "ok" : "")}
-    ${tile("Home dinners", home, "this month", "ok")}${tile("Groceries", fmt0(groc), st.groc ? `this week · budget ${fmt0(st.groc)}` : "this week", st.groc && groc > st.groc ? "bad" : "")}
+    ${tile("Home dinners", home, "this month", "ok")}${tile("At home", (S.pantry || []).length, "things in your kitchen")}
     ${tile("In the freezer", portions, plural(portions, "portion") + " ready")}${tile("Use it first", useSoon().length, useSoon().length ? "need using soon" : "nothing urgent", useSoon().length ? "bad" : "ok")}
     ${tile("Fresh food used", S.used + S.tossed ? Math.round(S.used / (S.used + S.tossed) * 100) + "%" : "–", "instead of tossed")}</div>`;
   const days = []; for (let i = 0; i < 7; i++) { const d = E.addDays(t, i), q = slotName(MP.slot(S, d)); days.push(`<div class="item click" data-act="dayMenu" data-d="${d}">${dateBox(d, i ? "" : "a")}<div class="grow"><div class="nm">${q ? esc(q.n) : `<span class="faint">Nothing planned</span>`}</div><div class="tiny muted">${i === 0 ? "today" : i === 1 ? "tomorrow" : DOWL[E.dow(d)]}${isLow(d) ? ` · <span class="tag">low-energy day</span>` : ""}</div></div>${ic("right")}</div>`); }
   const coming = card("Next 7 days", `<div class="list">${days.join("")}</div>`, { right: `<button class="lnk" data-go="week">Week</button>`, tight: true });
   return top + `<div style="margin-bottom:18px">${nextStep()}</div><div class="grid g12 start">${hero}${tiles}</div>
+    <div class="grid g3 mt start">${budgetCard()}${fromHomeCard(3)}${grocChartCard()}</div>
     <div class="grid g21 mt start"><div class="col">${energy}${choices}</div><div class="col">${fridgeCard(3)}${coming}</div></div>
     <p class="tiny faint" style="text-align:center;margin-top:18px">Too much at once? <button class="link" data-act="simple" data-v="1">Simple view</button></p>`;
 }
 // one thing, never a wall of tasks
 function nextStep() {
   const t = today(), tm = E.addDays(t, 1), p = MP.slot(S, t), pt = MP.slot(S, tm);
-  const urgent = [...S.fridge].sort((a, b) => leftDays(a) - leftDays(b))[0];
+  const urgent = (S.pantry || []).filter(f => f.exp).sort((a, b) => leftDays(a) - leftDays(b))[0];
   let ico = "spark", txt = "You're set. Nothing needs you right now.", btns = "";
   if (pt && pt.frz && !pt.thawed) { ico = "snow"; txt = `<b>${esc(pt.n)}</b> is tomorrow's dinner. Take it out of the freezer tonight so it can thaw in the fridge.`; btns = `<button class="btn sm pri" data-act="thawed" data-d="${tm}">${ic("check")}Done</button>`; }
   else if (urgent && leftDays(urgent) <= 0) { ico = "fridge"; txt = `<b>${esc(urgent.n)}</b> needs using today. Cook it, freeze it, or let it go.`; btns = `<button class="btn sm" data-act="fUse" data-id="${urgent.id}" data-v="used">Used it</button><button class="btn sm" data-act="fUse" data-id="${urgent.id}" data-v="frozen">${ic("snow")}Froze it</button>`; }
@@ -1858,7 +1950,7 @@ function vWeek() {
 // ------------------------------------------------------------ shopping list
 function listRange() { const t = today(), ws = E.weekStart(t, S.settings.weekStart); return VS.nw ? [E.addDays(ws, 7), E.addDays(ws, 13), E.addDays(ws, 7)] : [t, E.addDays(ws, 6), ws]; }
 function vList() {
-  const [from, to, key] = listRange(), items = MP.shopping(S, from, to), done = S.list[key] || [];
+  const [from, to, key] = listRange(), all = MP.shopping(S, from, to), items = all.filter(x => x.home !== "all"), athome = all.filter(x => x.home === "all"), done = S.list[key] || [];
   S.extra.forEach(x => items.push({ n: x.n, u: "", a: "x", q: 0, for: [], ex: x.id }));
   const left = items.filter(x => !done.includes(x.n.toLowerCase())).length;
   const seg = `<div class="seg"><button class="${VS.nw ? "" : "on"}" data-act="nw" data-v="0">This week</button><button class="${VS.nw ? "on" : ""}" data-act="nw" data-v="1">Next week</button></div>`;
@@ -1868,25 +1960,27 @@ function vList() {
   const groups = AORDER.map(a => {
     let g = items.filter(x => x.a === a); if (VS.store) g = g.filter(x => !done.includes(x.n.toLowerCase()));
     if (!g.length) return ""; g.sort((x, y) => x.n.localeCompare(y.n));
-    return card(AISLE[a], `<div class="list">${g.map(x => { const dn = done.includes(x.n.toLowerCase()); return `<div class="item click shop ${dn ? "paid" : ""}" data-act="tick" data-n="${esc(x.n.toLowerCase())}" data-a="${x.a}"><button class="tick ${dn ? "on" : ""}" aria-label="Got it">${ic("check")}</button><div class="grow"><div class="nm">${esc(x.n[0].toUpperCase() + x.n.slice(1))}${x.q ? ` <span class="muted">· ${fmtQ(x.q, x.u)}</span>` : ""}</div>${x.for.length ? `<div class="tiny muted ell">${esc(x.for.join(", "))}</div>` : ""}</div>${x.ex ? `<button class="iconbtn" data-act="delExtra" data-id="${x.ex}" aria-label="Remove">${ic("x")}</button>` : ""}</div>`; }).join("")}</div>`, { right: `<span class="tiny">${g.filter(x => !done.includes(x.n.toLowerCase())).length} left</span>`, tight: true, b: a === "m" || a === "f" || a === "x" });
+    return card(AISLE[a], `<div class="list">${g.map(x => { const dn = done.includes(x.n.toLowerCase()); return `<div class="item click shop ${dn ? "paid" : ""}" data-act="tick" data-n="${esc(x.n.toLowerCase())}" data-a="${x.a}"><button class="tick ${dn ? "on" : ""}" aria-label="Got it">${ic("check")}</button><div class="grow"><div class="nm">${esc(x.n[0].toUpperCase() + x.n.slice(1))}${x.q ? ` <span class="muted">· ${fmtQ(x.q, x.u)}</span>` : ""}${x.home === "some" ? ` <span class="tag">some at home</span>` : x.had ? ` <span class="tag">${fmtQ(x.had, x.u)} at home</span>` : ""}</div>${x.for.length ? `<div class="tiny muted ell">${esc(x.for.join(", "))}</div>` : ""}</div>${x.ex ? `<button class="iconbtn" data-act="delExtra" data-id="${x.ex}" aria-label="Remove">${ic("x")}</button>` : ""}</div>`; }).join("")}</div>`, { right: `<span class="tiny">${g.filter(x => !done.includes(x.n.toLowerCase())).length} left</span>`, tight: true, b: a === "m" || a === "f" || a === "x" });
   }).filter(Boolean);
-  const side = `<div class="col">${card("This trip", `<div class="row" style="gap:12px">${ring(items.length ? (items.length - left) / items.length : 0, 64, 7, "var(--a)", items.length ? Math.round((items.length - left) / items.length * 100) + "%" : "–")}<div class="grow"><div class="nm">${items.length - left} of ${items.length} in the basket</div><div class="tiny muted">Fruit, veg, meat and dairy you tick move to Use it first, with a use-by countdown.</div></div></div>
-    <button class="btn sm mt" data-act="logGroc">${ic("plus")}Log what it cost</button>`, { soft: "soft" })}
+  const homeC = athome.length ? card(`Already at home · ${athome.length}`, `<div class="list">${athome.map(x => `<div class="item"><span class="emo" style="width:30px;height:30px;background:var(--okbg);color:var(--ok)">${ic("check", "i16")}</span><div class="grow"><div class="nm">${esc(capF(x.n))}</div><div class="tiny muted">need ${fmtQ(x.q, x.u)} · you have ${fmtQ(x.had, x.u)}</div></div></div>`).join("")}</div><p class="help">Left off the list because your kitchen has enough.</p>`, { tight: true }) : "";
+  const side = `<div class="col">${budgetCard()}${card("This trip", `<div class="row" style="gap:12px">${ring(items.length ? (items.length - left) / items.length : 0, 64, 7, "var(--a)", items.length ? Math.round((items.length - left) / items.length * 100) + "%" : "–")}<div class="grow"><div class="nm">${items.length - left} of ${items.length} in the basket</div><div class="tiny muted">When you're done, everything ticked goes into your kitchen and the amount you paid comes off your budget.</div></div></div>
+    <button class="btn sm pri mt" data-act="logTrip">${ic("check")}Done shopping</button>`, { b: true })}${homeC}
     ${card("Staples you always keep", `<p class="small muted" style="margin:0">Left off the list: ${STAPLE.join(", ")}.</p>`, { b: true })}</div>`;
   return top + add + (groups.length ? `<div class="grid g21 start mt"><div class="col">${groups.join("")}</div>${side}</div>` : `<div class="grid g21 start mt"><section class="card"><div class="body"><div class="empty">Plan a few meals and the list writes itself.<br><button class="btn sm pri mt" data-act="fillWeek">${ic("dice")}Fill my week</button></div></div></section>${side}</div>`);
 }
 
 // ------------------------------------------------------------ recipes
-const RF = { all: "All", go: "Go-tos", e0: "Barely any energy", e1: "Some energy", e2: "Feeling good", q: "15 min or less", v: "Vegetarian", k: "Kids like it", f: "Freezes well", bl: "Breakfast & lunch", mine: "Mine" };
+const RF = { all: "All", go: "Go-tos", e0: "Barely any energy", e1: "Some energy", e2: "Feeling good", q: "15 min or less", v: "Vegetarian", k: "Kids like it", f: "Freezes well", have: "What I have", bl: "Breakfast & lunch", mine: "Mine" };
 function vRecipes() {
   let rs = MP.recipes(S); const f = VS.rf, q = VS.q.trim().toLowerCase();
   if (f === "go") rs = rs.filter(r => S.go.includes(r.id)); else if (f === "mine") rs = rs.filter(r => r.id[0] === "m");
   else if (f[0] === "e" && f.length === 2) rs = rs.filter(r => r.e === +f[1] && r.slot === "dinner"); else if (f === "bl") rs = rs.filter(r => r.slot !== "dinner");
   else if ("qvkf".includes(f) && f.length === 1) rs = rs.filter(r => r.tags.includes(f));
+  if (f === "have") rs = rs.map(r => ({ r, c: MP.coverage(S, r) })).filter(x => x.c.p >= .5).sort((a, b) => b.c.p - a.c.p).map(x => x.r);
   if (q) rs = rs.filter(r => r.n.toLowerCase().includes(q) || r.i.some(x => parseIng(x).n.toLowerCase().includes(q)));
-  const top = head(`${MP.recipes(S).length} in your kitchen`, "Recipes", `<button class="btn pri" data-act="newRecipe">${ic("plus")}Add your recipe</button>`, "Sorted by the energy they take, not just the minutes.");
+  const top = head(`${MP.recipes(S).length} in your kitchen`, "Recipes", `<button class="btn pri" data-act="newRecipe">${ic("plus")}Add your recipe</button>`, `Sorted by the energy they take. ${DIETS.find(d => d[0] === S.settings.diet)[1] === "Everything" ? "" : DIETS.find(d => d[0] === S.settings.diet)[1] + " only."}`);
   const bar = `<section class="card"><div class="body"><input class="inp" id="q" placeholder="Search a recipe or an ingredient – what's in your fridge?" value="${esc(VS.q)}" autocomplete="off"><div class="row wrap mt" style="gap:6px">${Object.entries(RF).map(([k, l]) => `<button class="cat ${f === k ? "on" : ""}" data-act="rf" data-v="${k}">${l}</button>`).join("")}</div></div></section>`;
-  const list = rs.length ? `<div class="rgrid mt">${rs.map(r => `<button class="rcard" data-act="recipe" data-id="${r.id}">${rIcon(r)}<span class="grow"><b>${esc(r.n)}</b><span class="tiny muted">${r.t} min · ${r.slot === "dinner" ? ENERGY[r.e][0].toLowerCase() + " energy" : r.slot}</span></span><span class="m2">${meter(r.e)}${S.go.includes(r.id) ? `<span style="color:var(--b)">${ic("heart", "i16")}</span>` : ""}</span></button>`).join("")}</div>` : `<div class="empty mt">Nothing matches. <button class="link" data-act="rf" data-v="all">Show all</button></div>`;
+  const list = rs.length ? `<div class="rgrid mt">${rs.map(r => `<button class="rcard" data-act="recipe" data-id="${r.id}">${rIcon(r)}<span class="grow"><b>${esc(r.n)}</b><span class="tiny muted">${r.t} min · ${r.slot === "dinner" ? ENERGY[r.e][0].toLowerCase() + " energy" : r.slot}${(S.pantry || []).length ? (c => ` · <span style="color:${c.have === c.n ? "var(--ok)" : "inherit"}">have ${c.have}/${c.n}</span>`)(MP.coverage(S, r)) : ""}</span></span><span class="m2">${meter(r.e)}${S.go.includes(r.id) ? `<span style="color:var(--b)">${ic("heart", "i16")}</span>` : ""}</span></button>`).join("")}</div>` : `<div class="empty mt">Nothing matches. <button class="link" data-act="rf" data-v="all">Show all</button></div>`;
   return top + bar + list;
 }
 
@@ -1946,7 +2040,15 @@ function vInsights() {
   const lowDays = [0, 1, 2, 3, 4, 5, 6].map(dw => ({ dw, n: Object.entries(S.energy).filter(([d, v]) => v === 0 && E.dow(d) === dw && E.diff(d, t) <= 56).length })).sort((a, b) => b.n - a.n)[0];
   const energy = card("Your energy at dinner time · 30 days", et ? ENERGY.map(([n], l) => `<div class="budrow"><div class="top"><span class="nm">${meter(l)} ${n}</span><span class="small num"><b>${ec[l]}</b> <span class="muted">${plural(ec[l], "day")}</span></span></div>${bar(ec[l] / et)}</div>`).join("") +
     (lowDays && lowDays.n >= 2 && (S.settings.themes || {})[lowDays.dw] !== "low" ? `<p class="small" style="margin-bottom:0">${DOWL[lowDays.dw]}s are often low. <button class="link" data-act="setLow" data-v="${lowDays.dw}">Make ${DOWL[lowDays.dw]} a low-energy day</button></p>` : "") : `<div class="empty">Tap your energy on Tonight and you'll see your pattern here.</div>`, { b: true });
-  return head("No streaks. Only wins.", "Insights", "", "What went well – and where the money went.") + tiles + `<div class="grid g2 mt start">${dinners}${money}</div><div class="grid g2 mt start">${donutC}${energy}</div>`;
+  return head("No streaks. Only wins.", "Insights", "", "What went well – and where the money went.") + tiles + `<div class="grid g2 mt start">${dinners}${money}</div><div class="grid g2 mt start">${donutC}${energy}</div><div class="grid g2 mt start">${boughtCard(6)}${pantryMix()}</div>`;
+}
+
+function pantryMix() {
+  const cols = ["var(--a)", "var(--a2)", "var(--b)", "var(--b2)", "var(--ink2)", "var(--line2)", "var(--bg2)"], P = S.pantry || [];
+  const parts = AORDER.map((a, i) => ({ name: AISLE[a], v: P.filter(p => (p.a || "x") === a).length, color: cols[i] })).filter(p => p.v);
+  const W = MP.weeks(S, today(), 8).slice(0, -1), b = S.settings.groc, under = b ? W.filter(w => w.groc && w.groc <= b).length : 0;
+  return card("What's in your kitchen", (P.length ? `<div class="donutwrap">${donut(parts, 132, 24, `<text x="50%" y="47%" text-anchor="middle" font-family="Bodoni,serif" font-size="22" fill="var(--ink)">${P.length}</text><text x="50%" y="61%" text-anchor="middle" font-size="9.5" letter-spacing="1.5" fill="var(--ink2)">AT HOME</text>`).replace(/: [^"]*· /g, ": ")}<div class="legend">${parts.map(p => legendRow(p.color, p.name, p.v)).join("")}</div></div>` : `<div class="empty">Log a shopping trip and your kitchen shows up here.</div>`) +
+    (b ? `<p class="small" style="margin:12px 0 0">You stayed within your grocery budget <b>${under} of the last ${W.length} weeks</b>.</p>` : ""), { b: true });
 }
 
 /* modals: day menu, decide, plans changed, recipes, cook mode, people, fridge, freezer, money */
@@ -2091,9 +2193,9 @@ function quickAdd() {
   modal("Add", `<div class="list">
     <div class="item click" data-act="decide"><div class="emo">${ic("dice")}</div><div class="grow"><div class="nm">Decide tonight for me</div><div class="tiny muted">3 dinners for your energy</div></div>${ic("right")}</div>
     <div class="item click" data-act="fillWeek"><div class="emo">${ic("week")}</div><div class="grow"><div class="nm">Fill my week</div><div class="tiny muted">The empty days, in one tap</div></div>${ic("right")}</div>
-    <div class="item click" data-act="addFridge"><div class="emo">${ic("fridge")}</div><div class="grow"><div class="nm">Something to use up</div><div class="tiny muted">Goes to Use it first</div></div>${ic("right")}</div>
+    <div class="item click" data-act="addFridge"><div class="emo">${ic("fridge")}</div><div class="grow"><div class="nm">Something at home</div><div class="tiny muted">A gift, a bag of rice, leftovers</div></div>${ic("right")}</div>
     <div class="item click" data-act="addFrz"><div class="emo">${ic("snow")}</div><div class="grow"><div class="nm">Something in the freezer</div><div class="tiny muted">Ready for a no-energy night</div></div>${ic("right")}</div>
-    <div class="item click" data-act="logGroc"><div class="emo">${ic("cart")}</div><div class="grow"><div class="nm">What the groceries cost</div><div class="tiny muted">For your money chart</div></div>${ic("right")}</div>
+    <div class="item click" data-act="logGroc"><div class="emo">${ic("cart")}</div><div class="grow"><div class="nm">A shopping trip</div><div class="tiny muted">What you bought & paid</div></div>${ic("right")}</div>
     <div class="item click" data-act="newRecipe"><div class="emo">${ic("book")}</div><div class="grow"><div class="nm">A recipe of yours</div><div class="tiny muted">Paste it in, one ingredient per line</div></div>${ic("right")}</div></div>`);
 }
 
@@ -2105,7 +2207,7 @@ function vSettings() {
     <div class="row sb mt"><span>Dark mode</span><div class="seg">${[["auto", "Follow my phone"], ["off", "Light"], ["on", "Dark"]].map(([v, l]) => `<button class="${st.dark === v ? "on" : ""}" data-act="setDark" data-v="${v}">${l}</button>`).join("")}</div></div>`;
   const you = `<div class="frow">${field("Your name (optional)", `<input class="inp" data-set="name" value="${esc(st.name)}" placeholder="for the greeting">`)}${field("Usual dinner time", `<input class="inp" type="time" data-set="dinner" value="${esc(st.dinner)}">`)}</div>
     <div class="frow">${field("Weeks start on", `<select class="inp" data-set="weekStart">${opt(1, "Monday", st.weekStart)}${opt(0, "Sunday", st.weekStart)}</select>`)}${field("Currency", `<select class="inp" data-set="currency">${CURRENCIES.map(c => opt(c, c, st.currency)).join("")}</select>`)}</div>
-    <div class="caps" style="margin:4px 0 8px">Meals to plan</div><div class="row wrap" style="gap:6px">${SLOTS.map(([k, l]) => `<button class="cat ${st.slots.includes(k) ? "on" : ""}" data-act="slot" data-v="${k}" ${k === "dinner" ? "disabled" : ""}>${l}</button>`).join("")}</div><p class="help">Dinner only keeps it simple. Add breakfast or lunch any time.</p>`;
+    <div class="caps" style="margin:4px 0 8px">Meals to plan</div><div class="row wrap" style="gap:6px">${SLOTS.map(([k, l]) => `<button class="cat ${st.slots.includes(k) ? "on" : ""}" data-act="slot" data-v="${k}" ${k === "dinner" ? "disabled" : ""}>${l}</button>`).join("")}</div><p class="help">Dinner only keeps it simple. Add breakfast or lunch any time.</p>${`<div class="caps" style="margin:14px 0 8px">What do you eat?</div><div class="row wrap" style="gap:6px">${DIETS.map(([k, l]) => `<button class="cat ${(st.diet || "all") === k ? "on" : ""}" data-act="diet" data-v="${k}">${l}</button>`).join("")}</div>`}<p class="help">Suggestions, Fill my week and the recipe list follow this.</p>`;
   const money = `<div class="frow">${field("Weekly grocery budget (optional)", `<input class="inp" data-set="groc" inputmode="decimal" value="${st.groc || ""}" placeholder="e.g. 120">`)}${field("Takeout per person", `<input class="inp" data-set="takeout" inputmode="decimal" value="${st.takeout}">`)}</div>
     ${field("A home-cooked portion costs about", `<input class="inp" data-set="home" inputmode="decimal" value="${st.home}">`, "Used for “saved vs. takeout” in Insights. A rough guess is fine.")}`;
   const data = `<div class="row wrap"><button class="btn" data-act="backup">${ic("down")}Download a backup</button><button class="btn" data-act="restore">${ic("up")}Restore from a backup</button></div>
@@ -2149,7 +2251,7 @@ function vOnboard() {
   else if (s === 1) body = `<div class="caps">Step 2 of 3</div><h1 style="margin:6px 0 10px">Who's eating?</h1><p class="muted">Amounts and the shopping list follow your household. A child counts as half.</p>
     <div class="card pad">${OB.people.map((p, i) => `<div class="row" style="gap:8px;margin-bottom:8px"><input class="inp" data-obp="${i}" value="${esc(p.name)}" placeholder="${i ? "Name" : "You"}" ${i ? "" : "autofocus"}><button class="cat ${p.kid ? "on" : ""}" data-act="obKid" data-i="${i}">Child</button>${i ? `<button class="iconbtn" data-act="obDelP" data-i="${i}" aria-label="Remove">${ic("x")}</button>` : ""}</div>`).join("")}
     <button class="btn sm" data-act="obAddP">${ic("plus")}Add a person</button>
-    <div class="mt">${field("When do you usually eat dinner?", `<input class="inp" id="obTime" type="time" value="${esc(st.dinner)}" style="max-width:180px">`, "Tonight counts back from this and tells you when to start cooking.")}</div></div>
+    <div class="mt">${field("When do you usually eat dinner?", `<input class="inp" id="obTime" type="time" value="${esc(st.dinner)}" style="max-width:180px">`, "Tonight counts back from this and tells you when to start cooking.")}</div>${`<div class="caps" style="margin:14px 0 8px">What do you eat?</div><div class="row wrap" style="gap:6px">${DIETS.map(([k, l]) => `<button class="cat ${(st.diet || "all") === k ? "on" : ""}" data-act="diet" data-v="${k}">${l}</button>`).join("")}</div>`}</div>
     <div class="row sb mt"><button class="btn" data-act="obBack">${ic("left")}Back</button><button class="btn pri" data-act="obNext">Next ${ic("right")}</button></div>`;
   else body = `<div class="caps">Step 3 of 3</div><h1 style="margin:6px 0 10px">How does your week go?</h1><p class="muted">Which days are you usually drained? Long shifts, sports, late classes. Those get dinners that take no energy.</p>
     <div class="card pad"><div class="caps" style="margin-bottom:8px">Low-energy days (optional)</div><div class="row wrap" style="gap:6px">${[1, 2, 3, 4, 5, 6, 0].map(d => `<button class="cat ${(st.themes || {})[d] === "low" ? "on" : ""}" data-act="obLow" data-v="${d}">${DOWL[d]}</button>`).join("")}</div>
@@ -2198,6 +2300,221 @@ const SYNC = THSync.create({
 function relink() { const l = SYNC.linked; if (syncLinked !== null && l !== syncLinked) { syncLinked = l; render(); } syncLinked = l; }
 window.SYNC_NOTIFY = () => SYNC.changed();
 setTimeout(() => SYNC.start(), 0);
+
+/* kitchen: what's at home, shopping trips, weekly grocery budget, cook from what you have, used ingredients, most bought */
+const NONFOOD = /soap|paper|detergent|tissue|toilet|shampoo|bag|foil|sponge|wrap film|cleaner|battery|bulb/i;
+const UNITS = ["pc", "g", "ml", "can", "pack", "tbsp", "cup", "bunch"];
+const nkey = s => String(s || "").toLowerCase().trim().replace(/\s+/g, " ").replace(/ies$/, "y").replace(/oes$/, "o").replace(/([^s])s$/, "$1");
+const ODD = /coconut|peanut|oat drink|almond/, MODS = ["spring", "sweet", "green", "smoked", "sour", "baby", "frozen", "dried", "instant", "pizza", "puff"];
+function sameFood(a, b) {
+  a = nkey(a); b = nkey(b); if (a === b) return true;
+  if (ODD.test(a) !== ODD.test(b)) return false;
+  const wa = a.split(" "), wb = b.split(" "); if (MODS.some(m => wa.includes(m) !== wb.includes(m))) return false;
+  const w = (x, y) => y.length >= 4 && new RegExp("(^| )" + y.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "( |$)").test(x);
+  return w(a, b) || w(b, a);
+}
+const normQ = (q, u) => u === "kg" ? [q * 1000, "g"] : u === "l" ? [q * 1000, "ml"] : [q, u || "pc"];
+const pantryFor = n => (S.pantry || []).filter(p => sameFood(p.n, n));
+// what's at home for one ingredient: known amount in the same unit, or "some"
+function haveOf(n, u) {
+  const m = pantryFor(n); if (!m.length) return null;
+  const [, nu] = normQ(0, u); let q = 0, some = false;
+  m.forEach(p => { if (p.q == null || p.q === "") some = true; else { const [pq, pu] = normQ(+p.q, p.u); if (pu === nu) q += pq; else some = true; } });
+  return { q, some, items: m };
+}
+const capF = s => s ? s[0].toUpperCase() + s.slice(1) : s;
+const pDays = p => p.exp ? E.diff(today(), p.exp) : 99;
+
+// ---------------------------------------------------------- planner logic, now aware of the kitchen
+MP.usesFridge = (S, r) => (S.pantry || []).filter(p => p.exp && pDays(p) <= 2 && r.i.some(x => sameFood(parseIng(x).n, p.n)));
+MP.coverage = (S, r) => {
+  const need = r.i.map(parseIng).filter(g => !STAPLE.includes(g.n.toLowerCase()));
+  const miss = need.filter(g => !pantryFor(g.n).length);
+  return { n: need.length, have: need.length - miss.length, miss: miss.map(g => g.n), p: need.length ? (need.length - miss.length) / need.length : 1 };
+};
+MP.reason = (S, r, d, low) => {
+  const w = [], c = MP.coverage(S, r), f = MP.usesFridge(S, r);
+  if ((S.pantry || []).length && c.n) w.push(c.have === c.n ? "you have everything" : c.p >= .5 ? `you have ${c.have} of ${c.n}` : "");
+  if (f.length) w.push("uses up " + f.slice(0, 2).map(x => x.n.toLowerCase()).join(" & "));
+  if ((S.go || []).includes(r.id)) w.push("a go-to");
+  if (low && r.e === 0) w.push("fits a low-energy day");
+  const out = w.filter(Boolean); if (!out.length) out.push(["zero effort", "easy", "worth the effort"][r.e]);
+  return out.slice(0, 2).join(" · ");
+};
+MP.choices = (S, d, maxE, n = 3, exclude = [], slot = "dinner") => {
+  const rc = MP.recent(S, d), hasP = (S.pantry || []).length > 0;
+  return MP.recipes(S).filter(r => r.slot === slot && r.e <= maxE && !exclude.includes(r.id) && MP.okFor(S, r, d))
+    .map(r => ({ r, s: Math.random() * .9 + ((S.go || []).includes(r.id) ? 1.1 : 0) + MP.usesFridge(S, r).length * 1.4 + (hasP ? MP.coverage(S, r).p * 2.6 : 0) - (rc.has(r.id) ? 2.5 : 0) + (r.e === maxE ? .3 : 0) }))
+    .sort((a, b) => b.s - a.s).slice(0, n).map(x => x.r);
+};
+MP.fromHome = (S, n = 3) => MP.recipes(S).filter(r => r.slot === "dinner" && MP.okFor(S, r, today())).map(r => ({ r, c: MP.coverage(S, r) }))
+  .filter(x => x.c.p >= .5).sort((a, b) => b.c.p - a.c.p || MP.usesFridge(S, b.r).length - MP.usesFridge(S, a.r).length || a.r.e - b.r.e).slice(0, n);
+const _shopping = MP.shopping;
+const CNT = u => !["g", "ml", "kg", "l", "tbsp", "tsp"].includes(u);
+MP.shopping = (S, from, to) => _shopping(S, from, to).map(x => {
+  if (CNT(x.u) && x.q) x = { ...x, q: Math.ceil(x.q - .01) };
+  const h = haveOf(x.n, x.u); if (!h) return x;
+  const [q] = normQ(x.q, x.u);
+  if (h.q >= q - 1e-6 && h.q > 0) return { ...x, home: "all", had: h.q };
+  if (h.q > 0) return { ...x, q: CNT(x.u) ? Math.ceil(q - h.q - .01) : q - h.q, u: normQ(0, x.u)[1], had: h.q };
+  return { ...x, home: "some" };
+});
+MP.weekSpent = (S, d = today()) => { const s = E.weekStart(d, S.settings.weekStart), e = E.addDays(s, 6); return E.sum((S.spend || []).filter(x => x.kind === "groc" && x.date >= s && x.date <= e), x => x.amount); };
+MP.bought = S => {
+  const m = {};
+  (S.trips || []).forEach(t => (t.items || []).forEach(it => { const k = nkey(it.n); const o = m[k] = m[k] || { n: capF(it.n), times: 0, q: {}, last: "" };
+    o.times++; if (it.q) { const [q, u] = normQ(+it.q, it.u); o.q[u] = (o.q[u] || 0) + q; } if (t.date > o.last) o.last = t.date; }));
+  return Object.values(m).sort((a, b) => b.times - a.times || a.n.localeCompare(b.n));
+};
+const qTxt = o => Object.entries(o.q).map(([u, q]) => fmtQ(q, u)).join(" + ");
+
+// ---------------------------------------------------------- add things to the kitchen
+function addPantry(it, date) {
+  const [q, u] = it.q ? normQ(+it.q, it.u) : [null, it.u || "pc"], a = it.a || guessAisle(it.n);
+  const exp = SHELF[a] ? E.addDays(date, it.days || SHELF[a]) : (it.days ? E.addDays(date, it.days) : "");
+  const ex = (S.pantry || []).find(p => nkey(p.n) === nkey(it.n) && (p.u || "pc") === u);
+  if (ex) { ex.q = q == null || ex.q == null ? null : E.r2(+ex.q + q); if (exp && (!ex.exp || exp > ex.exp)) ex.exp = exp; ex.added = date; }
+  else S.pantry.push({ id: uid(), n: capF(String(it.n).slice(0, 60)), q: q == null ? null : E.r2(q), u, a, added: date, exp });
+}
+function pantryForm(p) {
+  p = p || { n: "", q: "", u: "pc" }; const dl = p.exp ? Math.max(1, pDays(p)) : 0;
+  modal(p.id ? "Edit" : "Add to your kitchen", `${field("What is it?", inp("pnm", p.n, { auto: !p.id, ph: "Rice, eggs, a bag of carrots…" }))}
+    <div class="frow">${field("How much (optional)", inp("pqq", p.q == null ? "" : p.q, { type: "number", ph: "leave empty = some" }))}${field("Unit", `<select class="inp" id="puu">${UNITS.map(u => opt(u, u === "pc" ? "pieces" : u, p.u || "pc")).join("")}</select>`)}</div>
+    ${field("Use within", `<div class="row wrap" style="gap:6px" id="pdd">${[[0, "It keeps"], [2, "2 days"], [3, "3 days"], [5, "5 days"], [7, "a week"], [14, "2 weeks"]].map(([d, l]) => `<button class="cat ${d === (p.id ? (dl ? [2, 3, 5, 7, 14].reduce((a, b) => Math.abs(b - dl) < Math.abs(a - dl) ? b : a) : 0) : 0) ? "on" : ""}" data-act="one" data-v="${d}">${l}</button>`).join("")}</div>`, "A gift from a neighbour, leftovers from the weekend, the rice that's always there. Dinner ideas use it.")}`,
+    `${p.id ? `<button class="btn danger" data-act="pDel" data-id="${p.id}">${ic("trash")}Remove</button>` : ""}<button class="btn pri" data-act="savePantry" data-id="${p.id || ""}">${p.id ? "Save" : "Add"}</button>`);
+}
+
+// ---------------------------------------------------------- shopping trip: ticked items -> kitchen, money -> budget
+function tickedItems() {
+  const [from, to, key] = listRange(), done = S.list[key] || [], items = MP.shopping(S, from, to);
+  S.extra.forEach(x => items.push({ n: x.n, u: "pc", a: "x", q: 0, ex: x.id }));
+  return items.filter(x => done.includes(x.n.toLowerCase()));
+}
+function tripModal() {
+  const its = tickedItems(); window._trip = its; const st = S.settings, sp = MP.weekSpent(S);
+  modal("Done shopping", `<p class="muted" style="margin-top:0">${its.length ? "What you ticked goes into your kitchen, so dinner ideas know what you have. Fix any amount you bought more or less of." : "Nothing ticked yet – you can still log what you paid."}</p>
+    ${its.length ? `<div class="list" style="max-height:300px;overflow:auto">${its.map((x, i) => `<div class="item"><div class="grow nm">${esc(capF(x.n))}</div><input class="inp sm" style="width:86px;text-align:right" data-tq="${i}" inputmode="decimal" value="${x.q ? (x.u === "g" || x.u === "ml" ? Math.round(x.q) : x.u === "tbsp" || x.u === "tsp" ? "" : Math.ceil(x.q - .01)) : ""}" placeholder="some"><span class="tiny muted" style="width:40px">${x.q ? esc(x.u === "pc" ? "pcs" : x.u) : ""}</span></div>`).join("")}</div>` : ""}
+    <div class="frow mt">${field("What did you pay?", moneyInp("tpA", "", { auto: !its.length }))}${field("Date", inp("tpD", today(), { type: "date" }))}</div>
+    ${st.groc ? `<p class="help">Weekly budget ${fmt0(st.groc)} · ${fmt0(Math.max(0, st.groc - sp))} left before this trip.</p>` : ""}`,
+    `<button class="btn pri" data-act="saveTrip">${ic("check")}Put it all away</button>`, { wide: 560 });
+}
+function saveTrip() {
+  const its = window._trip || [], a = num(val("tpA")), date = val("tpD") || today(), [, , key] = listRange();
+  if (!its.length && !(a > 0)) return bad("Type what you paid.");
+  const items = its.map((x, i) => { const el = $(`[data-tq="${i}"]`), v = el ? num(el.value) : x.q; return { n: x.n, q: v > 0 ? v : null, u: x.u || "pc", a: x.a }; });
+  commit(() => {
+    const id = uid(); S.trips.push({ id, date, amount: a > 0 ? E.r2(a) : 0, items: items.map(x => ({ n: x.n, q: x.q, u: x.u, a: x.a })) });
+    items.filter(x => !NONFOOD.test(x.n)).forEach(x => addPantry({ ...x, a: x.a === "x" ? guessAisle(x.n) : x.a }, date));
+    if (a > 0) S.spend.push({ id: uid(), date, amount: E.r2(a), kind: "groc", trip: id });
+    S.list[key] = []; S.extra = S.extra.filter(x => !its.some(t => t.ex === x.id));
+  }, "shopping trip");
+  VS.store = false; closeModal();
+  const left = S.settings.groc ? S.settings.groc - MP.weekSpent(S) : null;
+  toast(`${plural(items.length, "thing")} in your kitchen.${left != null ? left >= 0 ? ` ${fmt0(left)} left this week.` : ` ${fmt0(-left)} over this week.` : ""}`, () => undo());
+}
+
+// ---------------------------------------------------------- after cooking: take out what you used
+function usedRows(r, d) {
+  const k = MP.portions(S, d) * ((MP.slot(S, d) || {}).x || 1) / 2;
+  return r.i.map(parseIng).filter(g => !STAPLE.includes(g.n.toLowerCase())).map(g => { const h = haveOf(g.n, g.u); if (!h) return null;
+    const [nq, nu] = normQ(g.q * k, g.u), item = h.items[0], known = item.q != null && normQ(0, item.u)[1] === nu;
+    return { g, item, known, use: known ? Math.min(+item.q, nu === "g" || nu === "ml" ? nq : Math.ceil(nq - .01)) : 0, nu }; }).filter(Boolean);
+}
+function usedModal(rid, d, then) {
+  const r = MP.rec(S, rid); if (!r) return then && then();
+  const rows = usedRows(r, d); if (!rows.length) return then && then();
+  window._used = { rows, then };
+  modal("What did you use?", `<p class="muted" style="margin-top:0">Taken out of your kitchen, so tomorrow's ideas stay honest. Change anything that's off.</p><div class="list">${rows.map((x, i) => `<div class="item"><button class="tick on" data-act="uTog" data-i="${i}" aria-label="Used">${ic("check")}</button><div class="grow"><div class="nm">${esc(x.item.n)}</div><div class="tiny muted">${x.known ? "at home: " + fmtQ(+x.item.q, x.item.u) : "amount not tracked"}</div></div>
+    ${x.known ? `<input class="inp sm" style="width:80px;text-align:right" data-uq="${i}" inputmode="decimal" value="${+x.use.toFixed(x.nu === "g" || x.nu === "ml" ? 0 : 2)}"><span class="tiny muted" style="width:34px">${esc(x.nu === "pc" ? "pcs" : x.nu)}</span>` : `<button class="cat" data-act="one" data-v="gone" id="ug${i}">All gone</button>`}</div>`).join("")}</div>`,
+    `<button class="btn" data-act="usedSkip">Skip</button><button class="btn pri" data-act="usedSave">${ic("check")}Take them out</button>`, { wide: 560 });
+}
+function usedSave() {
+  const U = window._used; if (!U) return closeModal();
+  commit(() => U.rows.forEach((x, i) => {
+    const t = $(`[data-act="uTog"][data-i="${i}"]`); if (t && !t.classList.contains("on")) return;
+    if (x.known) { const v = num(($(`[data-uq="${i}"]`) || {}).value); x.item.q = E.r2(Math.max(0, +x.item.q - (v > 0 ? v : 0))); if (x.item.q <= .01) { S.pantry = S.pantry.filter(p => p !== x.item); S.used++; } }
+    else if ($("#ug" + i) && $("#ug" + i).classList.contains("on")) { S.pantry = S.pantry.filter(p => p !== x.item); S.used++; }
+  }), "used ingredients");
+  closeModal(); toast("Kitchen updated.", () => undo()); if (U.then) U.then();
+}
+function leftoversModal(r) {
+  modal("Nice. That's a win.", `<p style="margin-top:0">Any portions left over? Put them in the freezer for a no-energy night, or eat them tomorrow.</p><div class="row sb"><span>Portions left</span><div class="stepper"><button class="iconbtn" data-act="lo" data-v="-1">−</button><b id="loN">0</b><button class="iconbtn" data-act="lo" data-v="1">+</button></div></div>`,
+    `<button class="btn" data-act="close">None left</button><button class="btn" data-act="loSave" data-v="tomorrow" data-id="${r.id}">Tomorrow's lunch</button><button class="btn pri" data-act="loSave" data-v="freezer" data-id="${r.id}">${ic("snow")}Freeze them</button>`);
+}
+function ckDone() {
+  const r = CK.r, d = CK.d, slot = CK.slot; endCook();
+  commit(() => { const p = MP.slot(S, d, slot); setSlot(d, slot, p && p.r === r.id ? { ...p, done: true } : { r: r.id, done: true }); }, "cooked");
+  usedModal(r.id, d, () => leftoversModal(r));
+}
+
+// ---------------------------------------------------------- cards
+function budgetCard() {
+  const st = S.settings, sp = MP.weekSpent(S), b = st.groc, trips = (S.trips || []).filter(t => t.date >= E.weekStart(today(), st.weekStart)).length;
+  if (!b) return card("Grocery budget", `<p class="small muted" style="margin-top:0">Set a weekly amount and every shopping trip counts down from it.</p><div class="row" style="gap:8px"><input class="inp" data-set="groc" inputmode="decimal" placeholder="e.g. 120" style="max-width:140px"><span class="tiny muted">a week</span></div>`, { soft: "soft" });
+  const left = b - sp, p = sp / b;
+  return card("Grocery budget · this week", `<div class="row" style="gap:16px">${ring(Math.min(1, p), 92, 9, left < 0 ? "var(--bad)" : "var(--a)", Math.round(p * 100) + "%")}<div class="grow"><div class="dish" style="font-size:1.7em;line-height:1.1">${fmt0(Math.abs(left))}</div><div class="small ${left < 0 ? "badc" : "muted"}">${left < 0 ? "over budget" : "left to spend"}</div><div class="tiny muted" style="margin-top:4px">${fmt0(sp)} of ${fmt0(b)} · ${plural(trips, "trip")}</div></div></div>
+    <button class="btn sm mt" data-act="logTrip">${ic("cart")}Log a shopping trip</button>`, { soft: "soft" });
+}
+function fromHomeCard(n = 3) {
+  const xs = MP.fromHome(S, n);
+  return card("Cook from what you have", (S.pantry || []).length ? xs.length ? `<div class="list">${xs.map(({ r, c }) => `<div class="item click" data-act="recipe" data-id="${r.id}">${rIcon(r)}<div class="grow"><div class="nm">${esc(r.n)}</div><div class="tiny muted">${c.have === c.n ? `<span style="color:var(--ok)">you have everything</span>` : `${c.have} of ${c.n} · need ${esc(c.miss.slice(0, 2).join(", ").toLowerCase())}`}</div></div>${c.have === c.n ? `<span class="emo" style="width:30px;height:30px;background:var(--okbg);color:var(--ok)">${ic("check", "i16")}</span>` : ring(c.p, 30, 4, "var(--a)")}</div>`).join("")}</div>` : `<div class="empty">Not enough at home for a full dinner yet. Add what's in your cupboards and ideas show up here.</div>`
+    : `<div class="empty">Tick off your shopping list or add what's in your cupboards, and dinners you can make right now show up here.<br><button class="btn sm mt" data-act="addFridge">${ic("plus")}Add what's at home</button></div>`,
+    { right: `<button class="lnk" data-act="rf" data-v="have" data-go2="recipes">More</button>`, tight: true, b: true });
+}
+function grocChartCard() {
+  const W = MP.weeks(S, today(), 6), st = S.settings;
+  return card("Groceries per week", barChart([{ name: "Groceries", color: "var(--b)", vals: W.map(w => w.groc) }], W.map((w, i) => i === W.length - 1 ? "This wk" : dshort(w.s)), { h: 190, ref: st.groc || null, label: "Groceries per week" }) +
+    `<div class="hleg"><span><i style="background:var(--b)"></i>groceries</span>${st.groc ? `<span><i style="background:none;border-top:2px dashed var(--ink2);height:0;width:14px;border-radius:0"></i>budget</span>` : ""}</div>`, { right: `<button class="lnk" data-go="insights">Insights</button>` });
+}
+function boughtCard(n = 6) {
+  const B = MP.bought(S).slice(0, n), mx = B.length ? B[0].times : 1;
+  return card("Most bought", B.length ? B.map(o => `<div class="budrow"><div class="top"><span class="nm">${esc(o.n)}</span><span class="small num"><b>${o.times}×</b> <span class="muted">${esc(qTxt(o))}</span></span></div>${bar(o.times / mx)}</div>`).join("") + `<p class="help">From ${plural((S.trips || []).length, "shopping trip")}. Buy these in bulk or keep them as staples.</p>`
+    : `<div class="empty">Log a shopping trip and you'll see what you buy most, and how much of it.</div>`, { b: true });
+}
+function fridgeCard(n) {
+  const fr = (S.pantry || []).filter(p => p.exp).sort((a, b) => pDays(a) - pDays(b)), show = n ? fr.slice(0, n) : fr;
+  const row = f => { const l = pDays(f); const r = l <= 2 && MP.recipes(S).find(x => x.slot === "dinner" && x.i.some(y => sameFood(parseIng(y).n, f.n)));
+    return `<div class="item"><div class="date ${l <= 1 ? "b" : ""}"><b>${Math.max(0, l)}</b><span>day${l === 1 ? "" : "s"}</span></div><div class="grow"><div class="nm">${esc(f.n)}${f.q != null ? ` <span class="muted small">· ${fmtQ(+f.q, f.u)}</span>` : ""}</div><div class="tiny ${l <= 1 ? "badc" : "muted"}">${l < 0 ? "past its best – check it" : l === 0 ? "use today" : l === 1 ? "use by tomorrow" : l + " days left"}${r ? ` · try ${esc(r.n)}` : ""}</div></div>
+    <div class="row" style="gap:4px"><button class="btn sm" data-act="fUse" data-id="${f.id}" data-v="used">Used</button><button class="iconbtn" data-act="fUse" data-id="${f.id}" data-v="frozen" title="Froze it" aria-label="Froze it">${ic("snow")}</button><button class="iconbtn" data-act="fUse" data-id="${f.id}" data-v="tossed" title="Tossed" aria-label="Tossed">${ic("trash")}</button></div></div>`; };
+  return card(`Use it first`, show.length ? `<div class="list">${show.map(row).join("")}</div>` : `<div class="empty">Fresh food lands here with a countdown when you finish a shopping trip – so nothing rots at the back of the fridge.</div>`,
+    { right: n ? `<button class="lnk" data-go="kitchen">Kitchen</button>` : `<button class="lnk" data-act="addFridge">${ic("plus", "i16")} Add</button>`, tight: true, b: true });
+}
+function vKitchen() {
+  const t = today(), P = S.pantry || [];
+  const frz = card("Freezer shelf", S.freezer.filter(z => z.portions > 0).length ? `<div class="list">${[...S.freezer].filter(z => z.portions > 0).sort((a, b) => a.date < b.date ? -1 : 1).map(z => { const age = E.diff(z.date, t), old = age > 90; return `<div class="item"><div class="emo" style="color:var(--b)">${ic("snow")}</div><div class="grow"><div class="nm">${esc(z.n)}</div><div class="tiny ${old ? "badc" : "muted"}">${plural(z.portions, "portion")} · frozen ${age < 14 ? age + " days" : Math.round(age / 7) + " weeks"} ago${old ? " · best eaten soon" : ""}</div>
+    <div class="row wrap" style="gap:5px;margin-top:7px"><button class="btn sm" data-act="useFrz" data-id="${z.id}" data-d="${t}">Tonight</button><button class="btn sm" data-act="useFrz" data-id="${z.id}" data-d="${E.addDays(t, 1)}">Tomorrow</button><button class="btn sm" data-act="frzPick" data-id="${z.id}">Another day</button><button class="btn sm" data-act="frzMinus" data-id="${z.id}">−1 portion</button></div></div></div>`; }).join("")}</div>` :
+    `<div class="empty">Nothing in the freezer yet. After cooking, the app asks if there are portions left over – they land here, ready for a no-energy night.</div>`, { right: `<button class="lnk" data-act="addFrz">${ic("plus", "i16")} Add</button>`, tight: true });
+  const groups = AORDER.map(a => { const g = P.filter(p => (p.a || "x") === a).sort((x, y) => x.n.localeCompare(y.n)); if (!g.length) return "";
+    return `<div class="caps" style="margin:12px 0 4px">${AISLE[a]}</div>` + g.map(p => `<div class="item click" data-act="pEdit" data-id="${p.id}"><div class="grow"><div class="nm">${esc(p.n)}</div><div class="tiny muted">${p.q != null ? fmtQ(+p.q, p.u) : "some"}${p.exp ? ` · ${pDays(p) <= 1 ? `<span class="badc">use ${pDays(p) <= 0 ? "today" : "by tomorrow"}</span>` : pDays(p) + " days left"}` : ""}</div></div><button class="iconbtn" data-act="fUse" data-id="${p.id}" data-v="used" title="Used up" aria-label="Used up">${ic("check")}</button></div>`).join(""); }).join("");
+  const home = card(`At home · ${P.length}`, P.length ? `<div class="list">${groups}</div><p class="help">Tap anything to change the amount. Cooking takes out what you used.</p>` : `<div class="empty">Empty for now. Finish a shopping trip and everything you ticked lands here – or add what's already in your cupboards.<br><button class="btn sm pri mt" data-act="addFridge">${ic("plus")}Add what's at home</button></div>`, { right: `<button class="lnk" data-act="addFridge">${ic("plus", "i16")} Add</button>`, tight: true });
+  const top = head("What you have, what to cook", "Kitchen", `<button class="btn" data-act="addFridge">${ic("plus")}Add to kitchen</button><button class="btn pri" data-act="addFrz">${ic("snow")}Add to freezer</button>`, "Everything at home, what needs eating first, and dinners you can make right now.");
+  const tot = S.used + S.tossed;
+  const stats = `<div class="tiles" style="grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:18px">${tile("At home", P.length, plural(P.length, "thing"))}${tile("Use soon", useSoon().length, "within a day", useSoon().length ? "bad" : "ok")}${tile("Freezer portions", E.sum(S.freezer, z => z.portions), "ready to heat")}${tile("Fresh food used", tot ? Math.round(S.used / tot * 100) + "%" : "–", `${S.used} used · ${S.tossed} tossed`, "ok")}</div>`;
+  return top + stats + `<div class="grid g21 start"><div class="col">${fromHomeCard(4)}${home}</div><div class="col">${fridgeCard(0)}${frz}${boughtCard(8)}</div></div>`;
+}
+
+// ---------------------------------------------------------- actions (merged into ACT)
+function kitchenActs(A) {
+  const done0 = A.done;
+  return {
+    done: d => { done0(d); const p = MP.slot(S, d.d, d.slot || "dinner"); if (p && p.r && !p.frz && !p.left) usedModal(p.r, d.d); },
+    addFridge: () => pantryForm(), pEdit: d => pantryForm((S.pantry || []).find(p => p.id === d.id)),
+    pDel: d => { commit(() => { S.pantry = S.pantry.filter(p => p.id !== d.id); }, "remove"); closeModal(); toast("Removed.", () => undo()); },
+    savePantry: d => { const n = val("pnm").trim(); if (!n) return bad("What is it?"); const q = num(val("pqq")), u = val("puu"), days = +($("#pdd .on") || { dataset: { v: 0 } }).dataset.v;
+      commit(() => { const ex = d.id && S.pantry.find(p => p.id === d.id);
+        if (ex) { Object.assign(ex, { n: capF(n.slice(0, 60)), q: q > 0 ? q : null, u, exp: days ? E.addDays(today(), days) : "" }); }
+        else addPantry({ n, q: q > 0 ? q : null, u, a: guessAisle(n), days }, today()); }, "kitchen"); closeModal(); },
+    fUse: d => { const f = (S.pantry || []).find(x => x.id === d.id); if (!f) return;
+      commit(() => { S.pantry = S.pantry.filter(x => x !== f); if (d.v === "tossed") S.tossed++; else S.used++; if (d.v === "frozen") S.freezer.push({ id: uid(), n: f.n, portions: 1, date: today() }); }, d.v);
+      toast(d.v === "tossed" ? "Gone. It happens." : d.v === "frozen" ? `${esc(f.n)} is in the freezer now.` : "Used up – nice.", () => undo()); },
+    tick: d => { const [, , key] = listRange(); const l = S.list[key] = S.list[key] || []; const i = l.indexOf(d.n); commit(() => { if (i >= 0) l.splice(i, 1); else l.push(d.n); }); },
+    store: () => { if (VS.store) return tripModal(); VS.store = true; render(); },
+    logTrip: () => tripModal(), logGroc: () => tripModal(), saveTrip: () => saveTrip(),
+    uTog: (d, el) => el.classList.toggle("on"), usedSave: () => usedSave(), usedSkip: () => { const U = window._used; closeModal(); if (U && U.then) U.then(); },
+    diet: d => { if (!S.setup && !DEMO) obCollect(); S.settings.diet = d.v; save(); render(); },
+    rf: (d, el) => { VS.rf = d.v; if (el && el.dataset.go2 && route() !== el.dataset.go2) go(el.dataset.go2); else render(); }
+  };
+}
 
 /* render loop, click/input wiring, actions */
 const VIEWS = { home: vHome, week: vWeek, list: vList, recipes: vRecipes, month: vMonth, kitchen: vKitchen, household: vHousehold, insights: vInsights, settings: vSettings };
@@ -2299,6 +2616,7 @@ const ACT = {
   obLow: d => { obCollect(); const th = S.settings.themes; if (th[d.v] === "low") delete th[d.v]; else th[d.v] = "low"; render(); },
   obDone: () => { obCollect(); S.people = OB.people.filter(p => p.name.trim()).map(p => ({ id: uid(), name: p.name.trim().slice(0, 30), kid: p.kid, no: [] })); S.setup = true; save(); flush(); go("home"); render(); toast("You're set. Tap your energy and pick tonight's dinner."); }
 };
+Object.assign(ACT, kitchenActs(ACT));
 document.addEventListener("click", e => {
   const g = e.target.closest("[data-go]"); if (g) { e.preventDefault(); closeModal(); go(g.dataset.go); return; }
   const a = e.target.closest("[data-act]"); if (!a) { if (e.target.closest(".modal a.nav")) closeModal(); return; }
